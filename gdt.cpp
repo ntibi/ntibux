@@ -1,5 +1,7 @@
 #include "gdt.hpp"
 
+GDT gdt;
+
 GDT::GDT() : gdt_entries_size(0) { }
 
 void GDT::set_gate(u8 n, u32 base, u32 limit, u8 access, u8 flags)

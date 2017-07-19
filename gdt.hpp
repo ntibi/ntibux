@@ -1,8 +1,8 @@
-#include "kernel.hpp"
-#include "terminal.hpp"
-
 #ifndef GDT_HPP
 # define GDT_HPP
+
+#include "kernel.hpp"
+#include "terminal.hpp"
 
 class terminal;
 

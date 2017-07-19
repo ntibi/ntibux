@@ -12,6 +12,8 @@
 
 
 extern terminal term;
+class GDT;
+extern GDT gdt;
 
 extern u32 stack_top;
 extern u32 stack_bottom;
