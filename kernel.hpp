@@ -9,11 +9,13 @@
 #include "multiboot.h"
 #include "mem.hpp"
 #include "misc.hpp"
+#include "debug.hpp"
 
 
-extern terminal term;
-class GDT;
-extern GDT gdt;
+extern class terminal term;
+extern class GDT gdt;
+extern class mem mem;
+extern class debug debug;
 
 extern u32 stack_top;
 extern u32 stack_bottom;

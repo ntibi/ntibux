@@ -160,6 +160,6 @@ int interpreter::command_log_level(char **args)
 int interpreter::command_trace(char **args)
 {
     (void)args;
-    trace();
+    debug.trace();
     return 0;
 }

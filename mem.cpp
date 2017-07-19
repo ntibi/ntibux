@@ -1,5 +1,7 @@
 #include "mem.hpp"
 
+class mem mem;
+
 mem::mem() : total(0), pages(0) { }
 
 void mem::init(u32 high_mem)

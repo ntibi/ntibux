@@ -22,8 +22,6 @@ static void shell(terminal &term)
 
 extern "C" void kernel_main(struct multiboot_info *mboot, u32 magic)
 {
-    mem mem;
-
     term.init();
     term.set_vga_buffer((u16*)0xb8000);
     term.set_default_color(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
@@ -41,6 +39,7 @@ extern "C" void kernel_main(struct multiboot_info *mboot, u32 magic)
     else
         term.printk(KERN_WARNING "no cmdline\n");
 
+    debug.init(mboot);
     gdt.init();
     mem.init(mboot->mem_upper);
 

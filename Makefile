@@ -1,7 +1,7 @@
 NAME = ntibux
 
 
-OBJS = boot.o kernel.o misc.o kmisc.o terminal.o terminal_printk.o vga.o interpreter.o gdt.o mem.o list.o
+OBJS = boot.o kernel.o misc.o kmisc.o terminal.o terminal_printk.o vga.o interpreter.o gdt.o mem.o list.o debug.o
 
 I686_GCC_DIR = $(HOME)/opt/cross/bin/
 PATH := $(I686_GCC_DIR):$(PATH)
@@ -57,9 +57,9 @@ run: $(NAME).iso # run iso
 drun: $(NAME).iso # run iso in debug
 	$(EM) -hda ntibux.iso $(EMFLAGS) -s
 
-debug: CFLAGS += -DDEBUG -g3
-debug: ASFLAGS += -g
-debug: re
+dre: CFLAGS += -DDEBUG -g3
+dre: ASFLAGS += -g
+dre: re
 
 
 clean:
