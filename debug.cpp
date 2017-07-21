@@ -2,18 +2,6 @@
 
 class debug debug;
 
-typedef struct __attribute__((packed)) {
-    uint32_t length;
-    uint16_t version;
-    uint32_t header_length;
-    uint8_t min_instruction_length;
-    uint8_t default_is_stmt;
-    int8_t line_base;
-    uint8_t line_range;
-    uint8_t opcode_base;
-    uint8_t std_opcode_lengths[12];
-} debug_line_header;
-
 debug::debug() : elf_sec(0) { }
 
 void debug::init(struct multiboot_info *mboot)

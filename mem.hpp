@@ -52,11 +52,22 @@ struct page_directory // page directory entry
     };
 };
 
+class kheap
+{
+public:
+    kheap();
+    void *alloc(u32 size);
+    void init();
+private:
+    u32 free_zone;
+};
+
 class mem
 {
 public:
     mem();
     void init(u32 high_mem);
+    class kheap kheap;
 private:
     void enable_paging();
     u32 total;

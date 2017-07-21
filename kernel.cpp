@@ -10,7 +10,7 @@ static void shell(terminal &term)
     while (1)
     {
         term.tputs("> ");
-        len = term.tread_line(buf, sizeof(buf));
+        len = term.tread_line(buf, MAX_LINE_LEN);
         buf[len] = 0;
         ret = interp.interpret(buf);
         if (ret)
