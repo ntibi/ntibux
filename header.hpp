@@ -34,7 +34,7 @@
 #define KERN_EMERG   LOG_HDR "0" // Used for emergency messages, usually those that precede a crash.
 #define KERN_ALERT   LOG_HDR "1" // A situation requiring immediate action.
 #define KERN_CRIT    LOG_HDR "2" // Critical conditions, often related to serious hardware or software failures.
-#define KERN_ERROR   LOG_HDR "3" // Used to report error conditions; device drivers often use                                                                 KERN _ERR to report hardware difficulties.
+#define KERN_ERROR   LOG_HDR "3" // Used to report error conditions.
 #define KERN_WARNING LOG_HDR "4" // Warnings about problematic situations that do not, in themselves, create serious problems with the system.
 #define KERN_NOTICE  LOG_HDR "5" // Situations that are normal, but still worthy of note. A number of security-related conditions are reported at this level.
 #define KERN_INFO    LOG_HDR "6" // Informational messages. Many drivers print information about the hardware they find at startup time at this level.
