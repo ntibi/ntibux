@@ -55,19 +55,20 @@ void mem::init(u32 high_mem)
 
 page *mem::get_page(u32 address, page_directory *pd)
 {
-    u32 index;
+    u32 pdn;
 
     address >>= 12;
-    index = address / 1024;
-    if (pd->tables[index])
+    term.printk(KERN_DEBUG "get_page(0x%x)\n", address);
+    pdn = address >> 10;
+    if (pd->tables[pdn])
     {
-        return &pd->tables[index]->pages[address % 1024];
+        return &pd->tables[pdn]->pages[address & 0xfff];
     }
     else
     {
-        pd->tables[index] = (page_table*)this->kheap.alloc(sizeof(page_table), ALLOC_ALIGNED | ALLOC_ZEROED);
-        pd->paddr[index] = (u32)pd->tables[index] | 0x7;
-        return &pd->tables[index]->pages[address % 1024];
+        pd->tables[pdn] = (page_table*)this->kheap.alloc(sizeof(page_table), ALLOC_ALIGNED | ALLOC_ZEROED);
+        pd->paddr[pdn] = (u32)pd->tables[pdn] | 0x7;
+        return &pd->tables[pdn]->pages[address & 0xfff];
     }
     return 0;
 }
@@ -81,12 +82,12 @@ void mem::switch_page_directory(struct page_directory *pd)
     // asm volatile("mov %0, %%cr0":: "r"(cr0));
 
     asm volatile (
-    "mov eax, %0;"
-    "mov cr3, eax;"
-    "mov eax, cr0;"
-    "or eax, 0x80000000;"
-    "mov cr0, eax;"
-    :: "r"(&pd->paddr));
+            "mov eax, %0;"
+            "mov cr3, eax;"
+            "mov eax, cr0;"
+            "or eax, 0x80000000;"
+            "mov cr0, eax;"
+            :: "r"(&pd->paddr));
 }
 
 void frames::init(u32 nframes)
