@@ -188,6 +188,16 @@ void terminal::tcur_scroll(void)
         this->cache_buffer[dst] = newbuf[dst];
 }
 
+void terminal::tcur_beginning(void)
+{
+    while (this->x)
+    {
+        this->cache_buffer[this->y * VGA_WIDTH + this->x] = vga_entry(' ', this->def_color);
+        --this->x;
+    }
+    this->update_vga_buffer();
+}
+
 void terminal::tcur_nextl(void)
 {
 	this->x = 0;
@@ -278,6 +288,10 @@ void terminal::tputc_noup(char c)
     if (c == '\n')
     {
         tcur_nextl();
+    }
+    else if (c == '\r')
+    {
+        tcur_beginning();
     }
     else
     {

@@ -43,6 +43,7 @@ public:
     void set_cursor(u16 new_cursor);
 
     // borders
+    void tcur_beginning(void);
     void tcur_next(void);
     void tcur_nextl(void);
     void tcur_scroll(void);
