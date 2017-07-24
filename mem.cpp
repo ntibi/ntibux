@@ -2,6 +2,8 @@
 
 extern u32 end;
 
+static inline u32 off(u32 b) { return b % 32; }
+static inline u32 index(u32 b) { return b / 32; }
 
 void page::claim(u32 frame, u32 kernel, u32 writeable)
 {
@@ -36,15 +38,16 @@ void mem::init(u32 high_mem)
     this->kheap.init();
     this->frames.init(this->total / PAGESIZE);
 
-    for (i = 0; i < end; i += 0x1000)
+    for (i = 0; i < (u32)&end; i += 0x1000)
     {
         this->alloc_frame(this->get_page(i, &this->kernel_pd), 0, 0);
     }
     term.printk(KERN_INFO "switching to kernel page directory\n");
+    // term.getchar();
     this->switch_page_directory(&this->kernel_pd);
-    u32 *ptr = (u32*)0xA0000000; // TODO: ca devrait planter
-    u32 pf = *ptr;
-    term.printk("%d\n", pf);
+    // u32 *ptr = (u32*)0xA0000000; // TODO: ca devrait planter
+    // u32 pf = *ptr;
+    // term.printk("%d\n", pf);
 }
 
 page *mem::get_page(u32 address, page_directory *pd)
@@ -60,7 +63,7 @@ page *mem::get_page(u32 address, page_directory *pd)
     else
     {
         pd->tables[index] = (page_table*)this->kheap.alloc(sizeof(page_table), ALLOC_ALIGNED | ALLOC_ZEROED);
-        pd->paddr[index] = (u32)pd->tables[index];
+        pd->paddr[index] = (u32)pd->tables[index] | 0x7;
         return &pd->tables[index]->pages[address % 1024];
     }
     return 0;
@@ -68,22 +71,14 @@ page *mem::get_page(u32 address, page_directory *pd)
 
 void mem::switch_page_directory(struct page_directory *pd)
 {
-    unsigned int cr0;
-
-    asm volatile("mov %0, %%cr3":: "r"(pd));
-    asm volatile("mov %%cr0, %0": "=r"(cr0));
-    cr0 |= 0x80000000;
-    asm volatile("mov %0, %%cr0":: "r"(cr0));
-    // asm volatile (
-            // "mov cr3, %0;"
-            // "mov eax, cr0;"
-            // "or eax, 0x80000000;"
-            // "mov cr0, eax;"
-            // :: "r"(&pd->paddr));
+    asm volatile (
+            "mov eax, %0;"
+            "mov cr3, eax;"
+            "mov eax, cr0;"
+            "or eax, 0x80000000;"
+            "mov cr0, eax;"
+            :: "r"(&pd->paddr));
 }
-
-static inline u32 off(u32 b) { return b / 32; }
-static inline u32 index(u32 b) { return b % 32; }
 
 void frames::init(u32 nframes)
 {
