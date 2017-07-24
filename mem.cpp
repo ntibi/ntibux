@@ -38,13 +38,16 @@ void mem::init(u32 high_mem)
     this->kheap.init();
     this->frames.init(this->total / PAGESIZE);
 
-    for (i = 0; i < (u32)&end; i += 0x1000)
+    for (i = 0; i < (u32)&end + 0x1000 * 100; i += 0x1000)
     {
         this->alloc_frame(this->get_page(i, &this->kernel_pd), 0, 0);
     }
-    term.printk(KERN_INFO "switching to kernel page directory\n");
-    // term.getchar();
+    term.printk(KERN_INFO "identity mapped the first %d frames\n", (u32)&end / 0x1000);
+    term.printk(KERN_INFO "switching to kernel page directory...");
+    term.getchar();
     this->switch_page_directory(&this->kernel_pd);
+    term.getchar();
+    term.printk(" done\n");
     // u32 *ptr = (u32*)0xA0000000; // TODO: ca devrait planter
     // u32 pf = *ptr;
     // term.printk("%d\n", pf);
@@ -71,13 +74,19 @@ page *mem::get_page(u32 address, page_directory *pd)
 
 void mem::switch_page_directory(struct page_directory *pd)
 {
+    // asm volatile("mov %0, %%cr3":: "r"(&pd->paddr));
+    // u32 cr0;
+    // asm volatile("mov %%cr0, %0": "=r"(cr0));
+    // cr0 |= 0x80000000; // Enable paging!
+    // asm volatile("mov %0, %%cr0":: "r"(cr0));
+
     asm volatile (
-            "mov eax, %0;"
-            "mov cr3, eax;"
-            "mov eax, cr0;"
-            "or eax, 0x80000000;"
-            "mov cr0, eax;"
-            :: "r"(&pd->paddr));
+    "mov eax, %0;"
+    "mov cr3, eax;"
+    "mov eax, cr0;"
+    "or eax, 0x80000000;"
+    "mov cr0, eax;"
+    :: "r"(&pd->paddr));
 }
 
 void frames::init(u32 nframes)

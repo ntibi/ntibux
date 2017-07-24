@@ -8,9 +8,9 @@
 
 struct page // page table entry
 {
-    page() : frame(0), flags(0) {}
-    page(u32 address, u32 flags) : frame(address >> 12), flags(flags) {}
-    u32 frame : 20; // physical page address
+    page() : flags(0), frame(0) {}
+    // page() : frame(0), flags(0) {}
+    page(u32 address, u32 flags) : flags(flags), frame(address >> 12) { }
     union
     {
         struct
@@ -18,14 +18,22 @@ struct page // page table entry
             u8 present : 1; // is present ?
             u8 w : 1;       // writing rights
             u8 user : 1;    // userspace access
-            u8 r1 : 2;
             u8 accessed : 1;
             u8 dirty : 1;
-            u8 r2 : 2;
-            u8 unused : 3;
+            u8 unused : 7;
+
+            // u8 present : 1; // is present ?
+            // u8 w : 1;       // writing rights
+            // u8 user : 1;    // userspace access
+            // u8 r1 : 2;
+            // u8 accessed : 1;
+            // u8 dirty : 1;
+            // u8 r2 : 2;
+            // u8 unused : 3;
         };
         u32 flags : 12;
     };
+    u32 frame : 20; // physical page address
     void claim(u32 frame, u32 kernel, u32 writeable);
     void free(void);
 };
