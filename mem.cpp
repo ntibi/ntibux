@@ -1,6 +1,10 @@
 #include "mem.hpp"
 
-extern u32 end;
+extern u32 _kbeginning;
+extern u32 _kend;
+
+u32 kbeginning = (u32)&_kbeginning;
+u32 kend = (u32)&_kend;
 
 static inline u32 off(u32 b) { return b % 32; }
 static inline u32 index(u32 b) { return b / 32; }
@@ -38,19 +42,36 @@ void mem::init(u32 high_mem)
     this->kheap.init();
     this->frames.init(this->total / PAGESIZE);
 
-    for (i = 0; i < (u32)&end + 0x1000 * 100; i += 0x1000)
+    for (i = 0; i < kbeginning; i += 0x1000)
     {
-        this->alloc_frame(this->get_page(i, &this->kernel_pd), 0, 0);
+        this->frames.mark_frame(i);
     }
-    term.printk(KERN_INFO "identity mapped the first %d frames\n", (u32)&end / 0x1000);
+    term.printk(KERN_INFO "locked the %d bios/bootloader frames (0x%x - 0x%x)\n", ((kbeginning + 0xfff) & 0xfffff000) / 0x1000, 0, ((kbeginning + 0xfff) & 0xfffff000) - 1);
+    for (i = kbeginning; i < kend; i += 0x1000) // kernel identity mapping
+    {
+        this->map(i, i, &this->kernel_pd, 0, 0);
+    }
+    term.printk(KERN_INFO "identity mapped the %d kernel frames (0x%x - 0x%x)\n", (((kend - kbeginning) + 0xfff) & 0xfffff000) / 0x1000, kbeginning, ((kend + 0xfff) & 0xfffff000) - 1);
     term.printk(KERN_INFO "switching to kernel page directory...");
     term.getchar();
     this->switch_page_directory(&this->kernel_pd);
-    term.getchar();
     term.printk(" done\n");
     // u32 *ptr = (u32*)0xA0000000; // TODO: ca devrait planter
     // u32 pf = *ptr;
     // term.printk("%d\n", pf);
+}
+
+u32 mem::map(u32 vaddr, page_directory *pd, u32 user, u32 writeable)
+{
+    vaddr &= 0xfffff000;
+    return this->alloc_frame(this->get_page(vaddr, pd), user, writeable);
+}
+
+u32 mem::map(u32 vaddr, u32 paddr, page_directory *pd, u32 user, u32 writeable)
+{
+    vaddr &= 0xfffff000;
+    paddr &= 0xfffff000;
+    return this->alloc_frame(this->get_page(vaddr, pd), paddr, user, writeable);
 }
 
 page *mem::get_page(u32 address, page_directory *pd)
@@ -66,7 +87,7 @@ page *mem::get_page(u32 address, page_directory *pd)
     else
     {
         pd->tables[pdn] = (page_table*)this->kheap.alloc(sizeof(page_table), ALLOC_ALIGNED | ALLOC_ZEROED);
-        pd->paddr[pdn] = (u32)pd->tables[pdn] | 0x7;
+        pd->paddr[pdn] = (u32)pd->tables[pdn] | 0x7; // TODO pas sur ?
         return &pd->tables[pdn]->pages[address & 0xfff];
     }
     return 0;
@@ -124,19 +145,30 @@ u32 frames::get_free_frame()
         for (j = 0; j < 32; ++j)
         {
             if (!(frames[i] & (0x1 << j)))
-                return (i*32 + j) * 0x1000;
+                return (i*32 + j) << 12;
         }
     }
     return 0;
 }
 
-void mem::alloc_frame(page *p, u32 kernel, u32 writeable)
+u32 mem::alloc_frame(page *p, u32 kernel, u32 writeable)
 {
     u32 frame;
 
     frame = this->frames.get_free_frame();
+    return this->alloc_frame(p, frame, kernel, writeable);
+}
+
+u32 mem::alloc_frame(page *p, u32 frame, u32 kernel, u32 writeable)
+{
+    if (!this->frames.is_free(frame))
+    {
+        term.printk(KERN_ERROR "frame 0x%x already mapped to a page\n", frame);
+        return 0;
+    }
     this->frames.mark_frame(frame);
     p->claim(frame, kernel, writeable);
+    return 1;
 }
 
 void mem::free_frame(page *p)
@@ -150,7 +182,7 @@ kheap::kheap() : free_zone(0) { }
 
 void kheap::init()
 {
-    this->free_zone = (u32)&end;
+    this->free_zone = kend;
 }
 
 void *kheap::alloc(u32 size) { return this->alloc(size, 0); }

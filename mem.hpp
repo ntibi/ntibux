@@ -15,21 +15,21 @@ struct page // page table entry
     {
         struct
         {
-            u8 present : 1; // is present ?
-            u8 w : 1;       // writing rights
-            u8 user : 1;    // userspace access
-            u8 accessed : 1;
-            u8 dirty : 1;
-            u8 unused : 7;
-
             // u8 present : 1; // is present ?
             // u8 w : 1;       // writing rights
             // u8 user : 1;    // userspace access
-            // u8 r1 : 2;
             // u8 accessed : 1;
             // u8 dirty : 1;
-            // u8 r2 : 2;
-            // u8 unused : 3;
+            // u8 unused : 7;
+
+            u8 present : 1; // is present ?
+            u8 w : 1;       // writing rights
+            u8 user : 1;    // userspace access
+            u8 r1 : 2;
+            u8 accessed : 1;
+            u8 dirty : 1;
+            u8 r2 : 2;
+            u8 unused : 3;
         };
         u32 flags : 12;
     };
@@ -83,8 +83,11 @@ public:
     class kheap kheap;
     page *get_page(u32 address, page_directory *pd);
     void switch_page_directory(struct page_directory *pd);
+    u32 map(u32 vaddr, page_directory *pd, u32 user, u32 writeable);
+    u32 map(u32 vaddr, u32 paddr, page_directory *pd, u32 user, u32 writeable);
 private:
-    void alloc_frame(page *p, u32 kernel, u32 writeable);
+    u32 alloc_frame(page *p, u32 kernel, u32 writeable);
+    u32 alloc_frame(page *p, u32 frame, u32 kernel, u32 writeable);
     void free_frame(page *p);
 
     class frames frames;
