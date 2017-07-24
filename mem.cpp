@@ -58,7 +58,6 @@ page *mem::get_page(u32 address, page_directory *pd)
     u32 pdn;
 
     address >>= 12;
-    term.printk(KERN_DEBUG "get_page(0x%x)\n", address);
     pdn = address >> 10;
     if (pd->tables[pdn])
     {
@@ -124,7 +123,7 @@ u32 frames::get_free_frame()
             continue;
         for (j = 0; j < 32; ++j)
         {
-            if (!frames[0x1 << j])
+            if (!(frames[i] & (0x1 << j)))
                 return (i*32 + j) * 0x1000;
         }
     }
