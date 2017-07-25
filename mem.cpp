@@ -42,16 +42,11 @@ void mem::init(u32 high_mem)
     this->kheap.init();
     this->frames.init(this->total / PAGESIZE);
 
-    for (i = 0; i < kbeginning; i += 0x1000)
-    {
-        this->frames.mark_frame(i);
-    }
-    term.printk(KERN_INFO "locked the %d bios/bootloader frames (0x%x - 0x%x)\n", ((kbeginning + 0xfff) & 0xfffff000) / 0x1000, 0, ((kbeginning + 0xfff) & 0xfffff000) - 1);
-    for (i = kbeginning; i < kend; i += 0x1000) // kernel identity mapping
+    for (i = 0; i < kend; i += 0x1000) // kernel identity mapping
     {
         this->map(i, i, &this->kernel_pd, 0, 0);
     }
-    term.printk(KERN_INFO "identity mapped the %d kernel frames (0x%x - 0x%x)\n", (((kend - kbeginning) + 0xfff) & 0xfffff000) / 0x1000, kbeginning, ((kend + 0xfff) & 0xfffff000) - 1);
+    term.printk(KERN_INFO "identity mapped the %d first frames (0x%x - 0x%x)\n", ((kend + 0xfff) & 0xfffff000) / 0x1000, 0, ((kend + 0xfff) & 0xfffff000) - 1);
     term.printk(KERN_INFO "switching to kernel page directory...");
     term.getchar();
     this->switch_page_directory(&this->kernel_pd);
@@ -113,7 +108,7 @@ void mem::switch_page_directory(struct page_directory *pd)
 void frames::init(u32 nframes)
 {
     this->nframes = nframes;
-    this->frames = (u32*)mem.kheap.alloc(index(this->nframes), ALLOC_ZEROED);
+    this->frames = (u32*)mem.kheap.alloc(sizeof(u32) * index(this->nframes), ALLOC_ZEROED);
 }
 
 void frames::mark_frame(u32 faddr)
