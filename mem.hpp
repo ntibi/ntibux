@@ -46,7 +46,7 @@ struct page_table
 struct page_directory
 {
     page_table *tables[1024];
-    u32 paddr[1024];
+    u32 paddrs[1024];
 };
 
 class frames
@@ -86,6 +86,7 @@ public:
     u32 map(u32 vaddr, page_directory *pd, u32 user, u32 writeable);
     u32 map(u32 vaddr, u32 paddr, page_directory *pd, u32 user, u32 writeable);
 private:
+    void identity_map_kernel();
     u32 alloc_frame(page *p, u32 kernel, u32 writeable);
     u32 alloc_frame(page *p, u32 frame, u32 kernel, u32 writeable);
     void free_frame(page *p);

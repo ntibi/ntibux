@@ -34,26 +34,49 @@ mem::mem() : kheap(), total(0) { }
 
 void mem::init(u32 high_mem)
 {
-    u32 i;
-
+    memset(&this->kernel_pd, 0, sizeof(page_directory));
     this->total = high_mem * 1024;
     term.printk(KERN_INFO "detected mem: %uMB\n", this->total >> 20);
 
     this->kheap.init();
     this->frames.init(this->total / PAGESIZE);
 
-    for (i = 0; i < kend; i += 0x1000) // kernel identity mapping
-    {
-        this->map(i, i, &this->kernel_pd, 0, 0);
-    }
-    term.printk(KERN_INFO "identity mapped the %d first frames (0x%x - 0x%x)\n", ((kend + 0xfff) & 0xfffff000) / 0x1000, 0, ((kend + 0xfff) & 0xfffff000) - 1);
+    /// TEST
+    uint32_t page_directory[1024] = {0};
+    uint32_t first_page_table[1024] = {0};
+    for(u32 i = 0; i < 124; i++)
+        first_page_table[i] = (i * 0x1000) | 3;
+    page_directory[0] = ((u32)first_page_table) | 3;
+    term.getchar();
+    asm volatile (
+            "mov eax, %0;"
+            "mov cr3, eax;"
+            "mov eax, cr0;"
+            "or eax, 0x80000000;"
+            "mov cr0, eax;"
+            :: "r"(page_directory));
+    while (1);
+    /// END TEST
+    
+    this->identity_map_kernel();
+
     term.printk(KERN_INFO "switching to kernel page directory...");
     term.getchar();
     this->switch_page_directory(&this->kernel_pd);
     term.printk(" done\n");
+ 
     // u32 *ptr = (u32*)0xA0000000; // TODO: ca devrait planter
     // u32 pf = *ptr;
     // term.printk("%d\n", pf);
+}
+
+void mem::identity_map_kernel()
+{
+    for (u32 i = 0; i < kend; i += 0x1000) // kernel identity mapping
+    {
+        this->map(i, i, &this->kernel_pd, 0, 0);
+    }
+    term.printk(KERN_INFO "identity mapped the %d first frames (0x%x - 0x%x)\n", ((kend + 0xfff) & 0xfffff000) / 0x1000, 0, ((kend + 0xfff) & 0xfffff000) - 1);
 }
 
 u32 mem::map(u32 vaddr, page_directory *pd, u32 user, u32 writeable)
@@ -82,7 +105,7 @@ page *mem::get_page(u32 address, page_directory *pd)
     else
     {
         pd->tables[pdn] = (page_table*)this->kheap.alloc(sizeof(page_table), ALLOC_ALIGNED | ALLOC_ZEROED);
-        pd->paddr[pdn] = (u32)pd->tables[pdn] | 0x7; // TODO pas sur ?
+        pd->paddrs[pdn] = (u32)(&pd->tables[pdn]) | 0x7;
         return &pd->tables[pdn]->pages[address & 0xfff];
     }
     return 0;
@@ -90,19 +113,14 @@ page *mem::get_page(u32 address, page_directory *pd)
 
 void mem::switch_page_directory(struct page_directory *pd)
 {
-    // asm volatile("mov %0, %%cr3":: "r"(&pd->paddr));
-    // u32 cr0;
-    // asm volatile("mov %%cr0, %0": "=r"(cr0));
-    // cr0 |= 0x80000000; // Enable paging!
-    // asm volatile("mov %0, %%cr0":: "r"(cr0));
-
     asm volatile (
             "mov eax, %0;"
             "mov cr3, eax;"
             "mov eax, cr0;"
             "or eax, 0x80000000;"
             "mov cr0, eax;"
-            :: "r"(&pd->paddr));
+            :: "r"(&pd->paddrs));
+    while (1);
 }
 
 void frames::init(u32 nframes)
