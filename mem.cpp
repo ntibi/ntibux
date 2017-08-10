@@ -55,9 +55,11 @@ void mem::init(u32 high_mem)
             "or eax, 0x80000000;"
             "mov cr0, eax;"
             :: "r"(page_directory));
+    term.printk("ca a charge, prochain getchar ca plante\n");
+    term.getchar();
     u32 *ptr = (u32*)0xA0000000; // TODO: ca devrait planter
     u32 pf = *ptr;
-    term.printk("%d\n", pf);
+    term.printk("ON EST CENSE AVOIR PLANTE :/\n", pf);
     while (1);
     /// END TEST
     
