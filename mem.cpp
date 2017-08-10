@@ -44,8 +44,8 @@ void mem::init(u32 high_mem)
     /// TEST
     uint32_t *page_directory = (u32*)this->kheap.alloc(sizeof(u32) * 1024, ALLOC_ALIGNED | ALLOC_ZEROED);
     uint32_t *first_page_table = (u32*)this->kheap.alloc(sizeof(u32) * 1024, ALLOC_ALIGNED | ALLOC_ZEROED);
-    for(u32 i = 0; i < 1024; i++)
-        first_page_table[i] = (i * 0x1000) | 3;
+    for(u32 i = 0; i < kend; i += 0x1000)
+        first_page_table[i / 0x1000] = i | 3;
     page_directory[0] = ((u32)first_page_table) | 3;
     term.getchar();
     asm volatile (
@@ -59,7 +59,7 @@ void mem::init(u32 high_mem)
     term.getchar();
     u32 *ptr = (u32*)0xA0000000; // TODO: ca devrait planter
     u32 pf = *ptr;
-    term.printk("ON EST CENSE AVOIR PLANTE :/\n", pf);
+    term.printk("ON EST CENSE AVOIR PLANTE :/ %d\n", pf);
     while (1);
     /// END TEST
     
