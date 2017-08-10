@@ -99,19 +99,24 @@ u32 mem::map(u32 vaddr, u32 paddr, page_directory *pd, u32 user, u32 writeable)
 
 page *mem::get_page(u32 address, page_directory *pd)
 {
-    u32 pdn;
+    u32 directory_index;
+    u32 table_index;
+    // adddress    : xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    // dir index   : 1111111111                      
+    // table index :           1111111111            
+    // offset      :                     111111111111
 
-    address >>= 12;
-    pdn = address >> 10;
-    if (pd->tables[pdn])
+    directory_index = (address >> 22) & 0x3ff;
+    table_index = (address >> 12) & 0x3ff;
+    if (pd->tables[directory_index])
     {
-        return &pd->tables[pdn]->pages[address & 0xfff];
+        return &pd->tables[directory_index]->pages[table_index];
     }
     else
     {
-        pd->tables[pdn] = (page_table*)this->kheap.alloc(sizeof(page_table), ALLOC_ALIGNED | ALLOC_ZEROED);
-        pd->paddrs[pdn] = (u32)(&pd->tables[pdn]) | 0x7;
-        return &pd->tables[pdn]->pages[address & 0xfff];
+        pd->tables[directory_index] = (page_table*)this->kheap.alloc(sizeof(page_table), ALLOC_ALIGNED | ALLOC_ZEROED);
+        pd->paddrs[directory_index] = (u32)(&pd->tables[directory_index]) | 0x7;
+        return &pd->tables[directory_index]->pages[table_index];
     }
     return 0;
 }
