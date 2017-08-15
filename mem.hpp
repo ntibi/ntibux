@@ -56,7 +56,9 @@ public:
     void *alloc(u32 size);
     void *alloc(u32 size, u32 flags);
     void init();
+    void map_heap(page_directory *pd); // call before activating paging
 private:
+    u32 start;
     u32 free_zone;
 };
 

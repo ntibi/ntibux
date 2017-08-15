@@ -40,14 +40,24 @@ void mem::init(u32 high_mem)
     this->kheap.init();
     this->frames.init(this->total / PAGESIZE);
 
-    this->kernel_pd = (page_directory*)this->kheap.alloc(sizeof(page_directory), ALLOC_ALIGNED | ALLOC_ZEROED);
     this->identity_map_kernel();
+    this->kheap.map_heap(this->kernel_pd);
+
     term.printk(KERN_DEBUG "activating paging...\n");
     this->switch_page_directory(this->kernel_pd);
+
+    term.printk(KERN_DEBUG "TESTING KHEAP ALLOC\n");
+    term.getchar();
+
+    u32 *ptr;
+    ptr = (u32*)this->kheap.alloc(4);
+    *ptr = 0;
 }
 
 void mem::identity_map_kernel()
 {
+    this->kernel_pd = (page_directory*)this->kheap.alloc(sizeof(page_directory), ALLOC_ALIGNED | ALLOC_ZEROED);
+
     for (u32 i = 0; i < kend; i += 0x1000) // kernel identity mapping
     {
         this->map(i, i, this->kernel_pd, 1, 1);
@@ -171,7 +181,17 @@ kheap::kheap() : free_zone(0) { }
 
 void kheap::init()
 {
-    this->free_zone = kend;
+    this->start = (kend + 0xfff) & ~0xfff;
+    this->free_zone = this->start;
+}
+
+void kheap::map_heap(page_directory *pd)
+{
+    term.printk(KERN_DEBUG "kheap: mapping %p -> %p\n", this->start, this->free_zone);
+    for (u32 i = this->start; i < this->free_zone; i += 0x1000)
+    {
+        mem.map(i, i, pd, 1, 1);
+    }
 }
 
 void *kheap::alloc(u32 size) { return this->alloc(size, 0); }
@@ -189,5 +209,8 @@ void *kheap::alloc(u32 size, u32 flags)
     this->free_zone += size;
     if (flags & ALLOC_ZEROED)
         memset(out, 0, size);
+#ifdef DEBUG_ALLOC
+    term.printk(KERN_DEBUG "kheap: alloc %p(s:%d, f:%c%c)\n", out, size, flags & ALLOC_ALIGNED ? 'A' : ' ', flags & ALLOC_ZEROED ? '0' : ' ');
+#endif
     return out;
 }
