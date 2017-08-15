@@ -100,6 +100,7 @@ page *mem::get_page(u32 address, page_directory *pd)
 
 void mem::switch_page_directory(struct page_directory *pd)
 {
+    this->current_pd = pd;
     asm volatile (
             "mov eax, %0;"
             "mov cr3, eax;"

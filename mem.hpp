@@ -82,6 +82,7 @@ private:
 
     u32 total;
     page_directory *kernel_pd;
+    page_directory *current_pd;
 };
 
 #endif
