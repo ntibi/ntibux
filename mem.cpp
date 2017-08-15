@@ -42,16 +42,17 @@ void mem::init(u32 high_mem)
 
     this->kernel_pd = (page_directory*)this->kheap.alloc(sizeof(page_directory), ALLOC_ALIGNED | ALLOC_ZEROED);
     /// TEST
-    u32 *first_page_table = (u32*)this->kheap.alloc(sizeof(u32) * 1024, ALLOC_ALIGNED | ALLOC_ZEROED);
-    // page_table *first_page_table = (page_table*)this->kheap.alloc(sizeof(page_table), ALLOC_ALIGNED | ALLOC_ZEROED);
-    this->kernel_pd->paddrs[0] = (u32)first_page_table | 0x1;
+    // u32 *first_page_table = (u32*)this->kheap.alloc(sizeof(u32) * 1024, ALLOC_ALIGNED | ALLOC_ZEROED);
+    page_table *first_page_table = (page_table*)this->kheap.alloc(sizeof(page_table), ALLOC_ALIGNED | ALLOC_ZEROED);
+    this->kernel_pd->paddrs[0] = (u32)first_page_table->pages | 0x1;
+    // this->kernel_pd->tables[0] = first_page_table;
     for (u32 i = 0; i < kend; i += 0x1000)
     {
         // p = this->get_page(i, this->kernel_pd);
         // *p = i | 3;
         // term.printk("setting page %p\n", p);
         // this->alloc_frame(this->get_page(i, this->kernel_pd), i, 1, 1);
-        first_page_table[i / 0x1000] = i | 3;
+        first_page_table->pages[i / 0x1000] = i | 3;
         // term.printk("setting page %p\n", &first_page_table[i / 0x1000]);
     }
     // this->kernel_pd->tables[0] = (page_table*)first_page_table;
