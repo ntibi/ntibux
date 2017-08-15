@@ -55,11 +55,13 @@ public:
     kheap();
     void *alloc(u32 size);
     void *alloc(u32 size, u32 flags);
-    void init();
-    void map_heap(page_directory *pd); // call before activating paging
+    void init(u32 reserve);
+    void enable_paging(page_directory *pd); // call before activating paging
 private:
+    u32 reserve;
     u32 start;
     u32 free_zone;
+    bool paging_enabled;
 };
 
 class mem

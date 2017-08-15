@@ -37,11 +37,11 @@ void mem::init(u32 high_mem)
     this->total = high_mem * 1024;
     term.printk(KERN_INFO "detected mem: %uMB\n", this->total >> 20);
 
-    this->kheap.init();
+    this->kheap.init(PAGESIZE * 128);
     this->frames.init(this->total / PAGESIZE);
 
     this->identity_map_kernel();
-    this->kheap.map_heap(this->kernel_pd);
+    this->kheap.enable_paging(this->kernel_pd);
 
     term.printk(KERN_DEBUG "activating paging...\n");
     this->switch_page_directory(this->kernel_pd);
@@ -178,18 +178,22 @@ void mem::free_frame(page *p)
 }
 
 
-kheap::kheap() : free_zone(0) { }
+kheap::kheap() : reserve(0), start(0), free_zone(0), paging_enabled(false) { }
 
-void kheap::init()
+void kheap::init(u32 reserve)
 {
+    this->reserve = (reserve + 0xfff) & ~0xfff;
     this->start = (kend + 0xfff) & ~0xfff;
     this->free_zone = this->start;
 }
 
-void kheap::map_heap(page_directory *pd)
+void kheap::enable_paging(page_directory *pd)
 {
-    term.printk(KERN_DEBUG "kheap: mapping %p -> %p\n", this->start, this->free_zone);
-    for (u32 i = this->start; i < this->free_zone; i += 0x1000)
+    this->paging_enabled = true;
+    if (this->free_zone - this->start > this->reserve)
+        this->reserve = this->free_zone - this->start;
+    term.printk(KERN_DEBUG "kheap: mapping %p -> %p\n", this->start, this->start + this->reserve);
+    for (u32 i = this->start; i < this->start + this->reserve; i += 0x1000)
     {
         mem.map(i, i, pd, 1, 1);
     }
