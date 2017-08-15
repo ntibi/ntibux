@@ -115,30 +115,38 @@ u32 mem::get_paddr(u32 vaddr)
 
 void mem::dump()
 {
-    u32 i, j;
-    u32 istart, prev, current;
+    u32 start_addr, prev, current;
+    bool dump = false;
 
-    for (i = 0; i < 1024; ++i)
+    prev = 0;
+    start_addr = 0;
+    for (u32 addr = 0; addr < 1024U * 1024U * 4096U - 4096; addr += PAGESIZE)
     {
-        if (this->current_pd->tables[i])
+        if (this->current_pd->tables[(addr >> 22) & 0xfff] && this->current_pd->tables[(addr >> 22) & 0xfff]->pages[(addr >> 12) & 0xfff].address)
+            current = this->current_pd->tables[(addr >> 22) & 0xfff]->pages[(addr >> 12) & 0xfff].address;
+        else
+            current = 0;
+
+        if (current)
         {
-            prev = 0;
-            for (j = 0; j < 1024; ++j)
-            {
-                current = this->current_pd->tables[i]->pages[j].address;
-                if (!prev)
-                {
-                    if (current)
-                        istart = j;
-                }
-                else
-                {
-                    if (!current)
-                        term.printk("0x%8x - 0x%8x\n", (i << 22) + (istart << 12), (i << 22) + (j << 12));
-                }
-                prev = current;
-            }
+            if (!prev)
+                start_addr = addr;
+            else if ((current & 0x7) != (prev & 0x7)) // fin de pages contigues ayant les memes flags
+                dump = true;
         }
+        else if (prev) // fin de pages contigues
+            dump = true;
+
+        if (dump)
+        {
+            term.printk("0x%8x - 0x%8x %8x %cr%c\n", start_addr, addr,
+                    addr - start_addr,
+                    (prev & PAGE_USER) ? 'u' : '-',
+                    (prev & PAGE_RW) ? 'w' : '-');
+            dump = false;
+            start_addr = addr;
+        }
+        prev = current;
     }
 }
 
