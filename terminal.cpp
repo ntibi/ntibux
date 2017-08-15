@@ -186,6 +186,7 @@ void terminal::tcur_scroll(void)
         newbuf[dst++] = v;
     for (dst = 0; dst < VGA_WIDTH * VGA_HEIGHT; ++dst)
         this->cache_buffer[dst] = newbuf[dst];
+    this->getchar(); //TODO: remove
 }
 
 void terminal::tcur_beginning(void)

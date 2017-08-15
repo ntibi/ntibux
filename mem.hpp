@@ -6,36 +6,21 @@
 #include "kernel.hpp"
 #include "list.hpp"
 
+#define PAGE_PRESENT (1 << 0)
+#define PAGE_RO (0 << 1)
+#define PAGE_RW (1 << 1)
+#define PAGE_USER (1 << 2)
+#define PAGE_KERN (0 << 2)
 struct page // page table entry
 {
-    page() : flags(0), frame(0) {}
-    // page() : frame(0), flags(0) {}
-    page(u32 address, u32 flags) : flags(flags), frame(address >> 12) { }
-    union
-    {
-        struct
-        {
-            // u8 present : 1; // is present ?
-            // u8 w : 1;       // writing rights
-            // u8 user : 1;    // userspace access
-            // u8 accessed : 1;
-            // u8 dirty : 1;
-            // u8 unused : 7;
-
-            u8 present : 1; // is present ?
-            u8 w : 1;       // writing rights
-            u8 user : 1;    // userspace access
-            u8 r1 : 2;
-            u8 accessed : 1;
-            u8 dirty : 1;
-            u8 r2 : 2;
-            u8 unused : 3;
-        };
-        u32 flags : 12;
-    };
-    u32 frame : 20; // physical page address
+    page() : address(0) { }
+    page(u32 val) : address(val) { }
+    page(u32 address, u32 flags) { this->address = (address & 0xfffff000) & (flags & 0xfff); }
+    page& operator=(u32 v) { this->address = v; return *this; }
     void claim(u32 frame, u32 kernel, u32 writeable);
     void free(void);
+
+    u32 address; // paddr(20) | flags(12)
 };
 
 struct page_table
@@ -45,8 +30,8 @@ struct page_table
 
 struct page_directory
 {
-    page_table *tables[1024];
-    u32 paddrs[1024];
+    page_table *tables[1024]; // vaddr
+    u32 paddrs[1024]; // paddr | flags
 };
 
 class frames
@@ -83,8 +68,8 @@ public:
     class kheap kheap;
     page *get_page(u32 address, page_directory *pd);
     void switch_page_directory(struct page_directory *pd);
-    u32 map(u32 vaddr, page_directory *pd, u32 user, u32 writeable);
-    u32 map(u32 vaddr, u32 paddr, page_directory *pd, u32 user, u32 writeable);
+    u32 map(u32 vaddr, page_directory *pd, u32 kernel, u32 writeable);
+    u32 map(u32 vaddr, u32 paddr, page_directory *pd, u32 kernel, u32 writeable);
 private:
     void identity_map_kernel();
     u32 alloc_frame(page *p, u32 kernel, u32 writeable);
@@ -94,7 +79,7 @@ private:
     class frames frames;
 
     u32 total;
-    page_directory kernel_pd;
+    page_directory *kernel_pd;
 };
 
 #endif
