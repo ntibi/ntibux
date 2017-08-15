@@ -21,7 +21,7 @@ void page::free(void)
 {
     if (!this->address)
     {
-        term.printk(KERN_ERROR "freeing non allocated frame (0x%x)\n", this->address & 0xfffff000);
+        term.printk(KERN_ERROR LOG_MM "freeing non allocated frame (0x%x)\n", this->address & 0xfffff000);
         return ;
     }
     this->address = 0;
@@ -35,7 +35,7 @@ mem::mem() : kheap(), total(0), paging_enabled(false) { }
 void mem::init(u32 high_mem)
 {
     this->total = high_mem * 1024;
-    term.printk(KERN_INFO "%5gmm%r: detected mem: %uMB\n", this->total >> 20);
+    term.printk(KERN_INFO LOG_MM "detected mem: %uMB\n", this->total >> 20);
 
     this->kheap.init(PAGESIZE * 128);
     this->frames.init(this->total / PAGESIZE);
@@ -43,7 +43,7 @@ void mem::init(u32 high_mem)
     this->identity_map_kernel();
     this->kheap.enable_paging();
 
-    term.printk(KERN_DEBUG "%5gmm%r: activating paging\n");
+    term.printk(KERN_DEBUG LOG_MM "activating paging\n");
     this->switch_page_directory(this->kernel_pd);
     this->paging_enabled = true;
 }
@@ -57,7 +57,7 @@ void mem::identity_map_kernel()
     {
         this->map(i, i, 1, 1);
     }
-    term.printk(KERN_INFO "%5gmm%r: identity mapped the %d first frames (0x%x - 0x%x)\n", ((kend + 0xfff) & 0xfffff000) / PAGESIZE, 0, ((kend + 0xfff) & 0xfffff000) - 1);
+    term.printk(KERN_INFO LOG_MM "identity mapped the %d first frames (0x%x - 0x%x)\n", ((kend + 0xfff) & 0xfffff000) / PAGESIZE, 0, ((kend + 0xfff) & 0xfffff000) - 1);
 }
 
 u32 mem::map(u32 vaddr, u32 kernel, u32 writeable)
@@ -180,7 +180,7 @@ u32 mem::alloc_frame(page *p, u32 frame, u32 kernel, u32 writeable)
 {
     if (!this->frames.is_free(frame))
     {
-        term.printk(KERN_ERROR "%5gmm%r:frame 0x%x already mapped to a page\n", frame);
+        term.printk(KERN_ERROR LOG_MM "frame 0x%x already mapped to a page\n", frame);
         return 0;
     }
     this->frames.mark_frame(frame);
@@ -211,12 +211,12 @@ void kheap::enable_paging()
         this->reserve = this->free_zone - this->start;
     u32 i = this->start;
 #ifdef DEBUG_KHEAP
-    term.printk(KERN_DEBUG "%5gkheap%r: identity mapping %p -> %p\n", i, this->free_zone);
+    term.printk(KERN_DEBUG LOG_KHEAP "identity mapping %p -> %p\n", i, this->free_zone);
 #endif
     for (; i < this->free_zone; i += PAGESIZE) // identity map the already used mem
         mem.map(i, i, 1, 1);
 #ifdef DEBUG_KHEAP
-    term.printk(KERN_DEBUG "%5gkheap%r: classic  mapping %p -> %p\n", i, this->start + this->reserve);
+    term.printk(KERN_DEBUG LOG_KHEAP "classic  mapping %p -> %p\n", i, this->start + this->reserve);
 #endif
     for (; i < this->start + this->reserve; i += PAGESIZE) // classic map for the rest
         mem.map(i, 1, 1);
@@ -234,7 +234,7 @@ void kheap::expand(u32 min)
         mem.map(i, 1, 1);
     this->reserve += increase;
 #ifdef DEBUG_KHEAP
-    term.printk(KERN_DEBUG "%5gkheap%r: increased kheap reserve from 0x%x to 0x%x\n", this->reserve - increase, this->reserve);
+    term.printk(KERN_DEBUG LOG_KHEAP "increased kheap reserve from 0x%x to 0x%x\n", this->reserve - increase, this->reserve);
 #endif
 }
 
@@ -255,7 +255,7 @@ void *kheap::alloc(u32 size, u32 flags)
     if (flags & ALLOC_ZEROED)
         memset(out, 0, size);
 #ifdef DEBUG_KHEAP
-    term.printk(KERN_DEBUG "%5gkheap%r: alloc %p(s:%d, f:%c%c) (rem: %p/%p)\n", out, size, flags & ALLOC_ALIGNED ? 'A' : ' ', flags & ALLOC_ZEROED ? '0' : ' ', this->free_zone - this->start, this->reserve);
+    term.printk(KERN_DEBUG LOG_KHEAP "alloc %p(s:%d, f:%c%c) (rem: %p/%p)\n", out, size, flags & ALLOC_ALIGNED ? 'A' : ' ', flags & ALLOC_ZEROED ? '0' : ' ', this->free_zone - this->start, this->reserve);
 #endif
     return out;
 }

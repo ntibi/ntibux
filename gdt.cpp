@@ -24,7 +24,7 @@ void GDT::init(void)
     this->gdt_entries = (struct entry*)GDT_ENTRIES_ADDRESS;
     GDT::flags flags(GDT::flags::GRANULARITY_4KB | GDT::flags::MODE_32B); // operand size: 32b, granularity: 4KB
 
-    term.printk(KERN_DEBUG "setting GDT entries\n");
+    term.printk(KERN_DEBUG LOG_GDT "setting GDT entries\n");
     this->set_gate(0, 0, 0, 0, 0);                                                                                                                                     // NULL segment
     this->set_gate(1, 0, 0xFFFFFFFF, GDT::access(GDT::access::KERNEL | GDT::access::CODE | GDT::access::READABLE_CODE  | GDT::access::NON_CONFORMING).raw, flags.raw); // kernel code
     this->set_gate(2, 0, 0xFFFFFFFF, GDT::access(GDT::access::KERNEL | GDT::access::DATA | GDT::access::WRITEABLE_DATA | GDT::access::GROWS_UP      ).raw, flags.raw); // kernel data
@@ -49,5 +49,5 @@ void GDT::load_gdt(void)
                     "jmp 0x8:flush;" // 0x8 <- code selector
                     "flush:"
                     :: "r"(&this->gdt_ptr));
-    term.printk(KERN_INFO "GDT loaded\n");
+    term.printk(KERN_INFO LOG_GDT "GDT loaded\n");
 }

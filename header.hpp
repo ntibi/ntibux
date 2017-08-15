@@ -51,6 +51,10 @@
 #define LL_INFO 6
 #define LL_DEBUG 7
 
+#define LOG_MM "%13gmm%r: "
+#define LOG_KHEAP "%13gkheap%r: "
+#define LOG_GDT "%13ggdt%r: "
+
 
 typedef uint32_t u32;
 typedef uint16_t u16;
