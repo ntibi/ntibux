@@ -49,13 +49,13 @@ krun: $(NAME) # run kernel
 	$(EM) -kernel $(NAME) $(EMFLAGS)
 
 dkrun: $(NAME) # run kernel in debug
-	$(EM) -kernel $(NAME) $(EMFLAGS) -s
+	$(EM) -kernel $(NAME) $(EMFLAGS) -s -S
 
 run: $(NAME).iso # run iso
 	$(EM) -hda ntibux.iso $(EMFLAGS)
 
 drun: $(NAME).iso # run iso in debug
-	$(EM) -hda ntibux.iso $(EMFLAGS) -s
+	$(EM) -hda ntibux.iso $(EMFLAGS) -s -S
 
 dre: CFLAGS += -DDEBUG -g3
 dre: ASFLAGS += -g

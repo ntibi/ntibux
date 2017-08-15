@@ -9,6 +9,7 @@ interpreter::interpreter(terminal &term) : term(term), commands_nbr(0)
     this->add_command("help", &interpreter::command_help);
     this->add_command("clear", &interpreter::command_clear);
     this->add_command("exit", &interpreter::command_exit);
+    this->add_command("quit", &interpreter::command_exit);
     this->add_command("echo", &interpreter::command_echo);
     this->add_command("motd", &interpreter::command_motd);
     this->add_command("colortest", &interpreter::command_colortest);
