@@ -41,49 +41,9 @@ void mem::init(u32 high_mem)
     this->frames.init(this->total / PAGESIZE);
 
     this->kernel_pd = (page_directory*)this->kheap.alloc(sizeof(page_directory), ALLOC_ALIGNED | ALLOC_ZEROED);
-    /// TEST
-    // u32 *first_page_table = (u32*)this->kheap.alloc(sizeof(u32) * 1024, ALLOC_ALIGNED | ALLOC_ZEROED);
-    page_table *first_page_table = (page_table*)this->kheap.alloc(sizeof(page_table), ALLOC_ALIGNED | ALLOC_ZEROED);
-    this->kernel_pd->paddrs[0] = (u32)first_page_table->pages | 0x1;
-    // this->kernel_pd->tables[0] = first_page_table;
-    for (u32 i = 0; i < kend; i += 0x1000)
-    {
-        // p = this->get_page(i, this->kernel_pd);
-        // *p = i | 3;
-        // term.printk("setting page %p\n", p);
-        // this->alloc_frame(this->get_page(i, this->kernel_pd), i, 1, 1);
-        first_page_table->pages[i / 0x1000] = i | 3;
-        // term.printk("setting page %p\n", &first_page_table[i / 0x1000]);
-    }
-    // this->kernel_pd->tables[0] = (page_table*)first_page_table;
-    // this->kernel_pd->paddrs[0] = ((u32)first_page_table) | 3;
-    term.printk("activation du paging...\n");
-    term.getchar();
-    asm volatile (
-            "mov eax, %0;"
-            "mov cr3, eax;"
-            "mov eax, cr0;"
-            "or eax, 0x80000000;"
-            "mov cr0, eax;"
-            :: "r"(this->kernel_pd->paddrs));
-    term.printk("ca a charge, prochain getchar ca plante\n");
-    term.getchar();
-    u32 *ptr = (u32*)0xA0000000; // TODO: ca devrait planter
-    u32 pf = *ptr;
-    term.printk("ON EST CENSE AVOIR PLANTE :/ %d\n", pf);
-    while (1);
-    /// END TEST
-    
     this->identity_map_kernel();
-
-    term.printk(KERN_INFO "switching to kernel page directory...");
-    term.getchar();
+    term.printk(KERN_DEBUG "activating paging...\n");
     this->switch_page_directory(this->kernel_pd);
-    term.printk(" done\n");
- 
-    // u32 *ptr = (u32*)0xA0000000; // TODO: ca devrait planter
-    // u32 pf = *ptr;
-    // term.printk("%d\n", pf);
 }
 
 void mem::identity_map_kernel()
@@ -119,10 +79,11 @@ page *mem::get_page(u32 address, page_directory *pd)
 
     directory_index = (address >> 22) & 0x3ff;
     table_index = (address >> 12) & 0x3ff;
-    if (!pd->tables[directory_index]) // TODO: check pd->tables[directory_index]->pages[table_index] aussi ?
+    if (!pd->tables[directory_index])
     {
-        pd->tables[directory_index] = (page_table*)this->kheap.alloc(sizeof(page_table), ALLOC_ALIGNED | ALLOC_ZEROED);
-        pd->paddrs[directory_index] = (u32)(&pd->tables[directory_index]) | 0x7; // TODO: get real paddr (when paging will be activated)
+        page_table *pt = (page_table*)this->kheap.alloc(sizeof(page_table), ALLOC_ALIGNED | ALLOC_ZEROED);
+        pd->tables[directory_index] = pt;
+        pd->paddrs[directory_index] = (u32)pt | 0x7; // TODO: get real paddr (when paging will be activated)
     }
     return &pd->tables[directory_index]->pages[table_index];
 }
@@ -136,7 +97,6 @@ void mem::switch_page_directory(struct page_directory *pd)
             "or eax, 0x80000000;"
             "mov cr0, eax;"
             :: "r"(pd->paddrs));
-    while (1);
 }
 
 void frames::init(u32 nframes)
@@ -197,7 +157,6 @@ u32 mem::alloc_frame(page *p, u32 frame, u32 kernel, u32 writeable)
     }
     this->frames.mark_frame(frame);
     p->claim(frame, kernel, writeable);
-    // term.printk(KERN_DEBUG "page %x claimed frame %x\n", p, frame); // TODO: remove debug
     return 1;
 }
 
