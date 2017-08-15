@@ -21,7 +21,7 @@
 // # define DEBUG_GETCHAR
 // # define DEBUG_GETSCANCODE
 // # define DEBUG_READLINE
-# define DEBUG_ALLOC
+# define DEBUG_KHEAP
 #endif
 
 

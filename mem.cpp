@@ -30,55 +30,61 @@ void page::free(void)
 
 class mem mem;
 
-mem::mem() : kheap(), total(0) { }
+mem::mem() : kheap(), total(0), paging_enabled(false) { }
 
 void mem::init(u32 high_mem)
 {
     this->total = high_mem * 1024;
-    term.printk(KERN_INFO "detected mem: %uMB\n", this->total >> 20);
+    term.printk(KERN_INFO "%5gmm%r: detected mem: %uMB\n", this->total >> 20);
 
     this->kheap.init(PAGESIZE * 128);
     this->frames.init(this->total / PAGESIZE);
 
     this->identity_map_kernel();
-    this->kheap.enable_paging(this->kernel_pd);
+    this->kheap.enable_paging();
 
-    term.printk(KERN_DEBUG "activating paging...\n");
+    term.printk(KERN_DEBUG "%5gmm%r: activating paging\n");
     this->switch_page_directory(this->kernel_pd);
-
-    term.printk(KERN_DEBUG "TESTING KHEAP ALLOC\n");
-    term.getchar();
-
-    u32 *ptr;
-    ptr = (u32*)this->kheap.alloc(4);
-    *ptr = 0;
+    this->paging_enabled = true;
 }
 
 void mem::identity_map_kernel()
 {
     this->kernel_pd = (page_directory*)this->kheap.alloc(sizeof(page_directory), ALLOC_ALIGNED | ALLOC_ZEROED);
+    this->current_pd = this->kernel_pd;
 
-    for (u32 i = 0; i < kend; i += 0x1000) // kernel identity mapping
+    for (u32 i = 0; i < kend; i += PAGESIZE) // kernel identity mapping
     {
-        this->map(i, i, this->kernel_pd, 1, 1);
+        this->map(i, i, 1, 1);
     }
-    term.printk(KERN_INFO "identity mapped the %d first frames (0x%x - 0x%x)\n", ((kend + 0xfff) & 0xfffff000) / 0x1000, 0, ((kend + 0xfff) & 0xfffff000) - 1);
+    term.printk(KERN_INFO "%5gmm%r: identity mapped the %d first frames (0x%x - 0x%x)\n", ((kend + 0xfff) & 0xfffff000) / PAGESIZE, 0, ((kend + 0xfff) & 0xfffff000) - 1);
 }
 
-u32 mem::map(u32 vaddr, page_directory *pd, u32 kernel, u32 writeable)
+u32 mem::map(u32 vaddr, u32 kernel, u32 writeable)
 {
     vaddr &= 0xfffff000;
-    return this->alloc_frame(this->get_page(vaddr, pd), kernel, writeable);
+    return this->alloc_frame(this->get_page(vaddr), kernel, writeable);
 }
 
-u32 mem::map(u32 vaddr, u32 paddr, page_directory *pd, u32 kernel, u32 writeable)
+u32 mem::map(u32 vaddr, u32 paddr, u32 kernel, u32 writeable)
 {
     vaddr &= 0xfffff000;
     paddr &= 0xfffff000;
-    return this->alloc_frame(this->get_page(vaddr, pd), paddr, kernel, writeable);
+    return this->alloc_frame(this->get_page(vaddr), paddr, kernel, writeable);
 }
 
-page *mem::get_page(u32 address, page_directory *pd)
+page *mem::get_page_no_create(u32 address)
+{
+    u32 directory_index;
+    u32 table_index;
+
+    directory_index = (address >> 22) & 0x3ff;
+    table_index = (address >> 12) & 0x3ff;
+    if (!this->current_pd->tables[directory_index])
+        return 0;
+    return &this->current_pd->tables[directory_index]->pages[table_index];
+}
+page *mem::get_page(u32 address)
 {
     u32 directory_index;
     u32 table_index;
@@ -89,13 +95,16 @@ page *mem::get_page(u32 address, page_directory *pd)
 
     directory_index = (address >> 22) & 0x3ff;
     table_index = (address >> 12) & 0x3ff;
-    if (!pd->tables[directory_index])
+    if (!this->current_pd->tables[directory_index])
     {
         page_table *pt = (page_table*)this->kheap.alloc(sizeof(page_table), ALLOC_ALIGNED | ALLOC_ZEROED);
-        pd->tables[directory_index] = pt;
-        pd->paddrs[directory_index] = (u32)pt | 0x7; // TODO: get real paddr (when paging will be activated)
+        this->current_pd->tables[directory_index] = pt;
+        if (this->paging_enabled)
+            this->current_pd->paddrs[directory_index] = (u32)this->get_paddr((u32)pt) | 0x7;
+        else
+            this->current_pd->paddrs[directory_index] = (u32)pt | 0x7;
     }
-    return &pd->tables[directory_index]->pages[table_index];
+    return &this->current_pd->tables[directory_index]->pages[table_index];
 }
 
 void mem::switch_page_directory(struct page_directory *pd)
@@ -108,6 +117,14 @@ void mem::switch_page_directory(struct page_directory *pd)
             "or eax, 0x80000000;"
             "mov cr0, eax;"
             :: "r"(pd->paddrs));
+}
+
+u32 mem::get_paddr(u32 vaddr)
+{
+    page *p;
+
+    p = this->get_page_no_create(vaddr);
+    return (p->address << 12) + (vaddr & 0xfff);
 }
 
 void frames::init(u32 nframes)
@@ -163,7 +180,7 @@ u32 mem::alloc_frame(page *p, u32 frame, u32 kernel, u32 writeable)
 {
     if (!this->frames.is_free(frame))
     {
-        term.printk(KERN_ERROR "frame 0x%x already mapped to a page\n", frame);
+        term.printk(KERN_ERROR "%5gmm%r:frame 0x%x already mapped to a page\n", frame);
         return 0;
     }
     this->frames.mark_frame(frame);
@@ -187,16 +204,38 @@ void kheap::init(u32 reserve)
     this->free_zone = this->start;
 }
 
-void kheap::enable_paging(page_directory *pd)
+void kheap::enable_paging()
 {
     this->paging_enabled = true;
     if (this->free_zone - this->start > this->reserve)
         this->reserve = this->free_zone - this->start;
-    term.printk(KERN_DEBUG "kheap: mapping %p -> %p\n", this->start, this->start + this->reserve);
-    for (u32 i = this->start; i < this->start + this->reserve; i += 0x1000)
-    {
-        mem.map(i, i, pd, 1, 1);
-    }
+    u32 i = this->start;
+#ifdef DEBUG_KHEAP
+    term.printk(KERN_DEBUG "%5gkheap%r: identity mapping %p -> %p\n", i, this->free_zone);
+#endif
+    for (; i < this->free_zone; i += PAGESIZE) // identity map the already used mem
+        mem.map(i, i, 1, 1);
+#ifdef DEBUG_KHEAP
+    term.printk(KERN_DEBUG "%5gkheap%r: classic  mapping %p -> %p\n", i, this->start + this->reserve);
+#endif
+    for (; i < this->start + this->reserve; i += PAGESIZE) // classic map for the rest
+        mem.map(i, 1, 1);
+}
+
+void kheap::expand(u32 min)
+{
+    u32 increase;
+
+    if (!this->paging_enabled)
+        return ;
+    increase = max(min, this->reserve);
+    increase = (increase + 0xfff) & ~0xfff;
+    for (u32 i = this->start + this->reserve; i < this->start + this->reserve + increase; i += PAGESIZE)
+        mem.map(i, 1, 1);
+    this->reserve += increase;
+#ifdef DEBUG_KHEAP
+    term.printk(KERN_DEBUG "%5gkheap%r: increased kheap reserve from 0x%x to 0x%x\n", this->reserve - increase, this->reserve);
+#endif
 }
 
 void *kheap::alloc(u32 size) { return this->alloc(size, 0); }
@@ -207,15 +246,16 @@ void *kheap::alloc(u32 size, u32 flags)
 
     if (flags & ALLOC_ALIGNED)
     {
-        this->free_zone &= 0xfffff000;
-        this->free_zone += 0x1000;
+        this->free_zone = (this->free_zone + 0xfff) & ~0xfff;
     }
     out = (void*)this->free_zone;
+    if (this->reserve < this->free_zone - this->start + size)
+        this->expand(size);
     this->free_zone += size;
     if (flags & ALLOC_ZEROED)
         memset(out, 0, size);
-#ifdef DEBUG_ALLOC
-    term.printk(KERN_DEBUG "kheap: alloc %p(s:%d, f:%c%c)\n", out, size, flags & ALLOC_ALIGNED ? 'A' : ' ', flags & ALLOC_ZEROED ? '0' : ' ');
+#ifdef DEBUG_KHEAP
+    term.printk(KERN_DEBUG "%5gkheap%r: alloc %p(s:%d, f:%c%c) (rem: %p/%p)\n", out, size, flags & ALLOC_ALIGNED ? 'A' : ' ', flags & ALLOC_ZEROED ? '0' : ' ', this->free_zone - this->start, this->reserve);
 #endif
     return out;
 }

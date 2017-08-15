@@ -32,5 +32,10 @@ inline u8 inb(u16 port)
     return ret;
 }
 
+template<typename T>
+inline const T& min(const T& a, const T& b) { if (a < b) return a; return b; }
+
+template<typename T>
+inline const T& max(const T& a, const T& b) { if (a > b) return a; return b; }
 
 #endif

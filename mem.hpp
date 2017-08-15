@@ -56,7 +56,8 @@ public:
     void *alloc(u32 size);
     void *alloc(u32 size, u32 flags);
     void init(u32 reserve);
-    void enable_paging(page_directory *pd); // call before activating paging
+    void expand(u32 min);
+    void enable_paging(); // call before activating paging
 private:
     u32 reserve;
     u32 start;
@@ -70,21 +71,27 @@ public:
     mem();
     void init(u32 high_mem);
     class kheap kheap;
-    page *get_page(u32 address, page_directory *pd);
+    page *get_page(u32 address);
+    page *get_page_no_create(u32 address);
     void switch_page_directory(struct page_directory *pd);
-    u32 map(u32 vaddr, page_directory *pd, u32 kernel, u32 writeable);
-    u32 map(u32 vaddr, u32 paddr, page_directory *pd, u32 kernel, u32 writeable);
+    u32 map(u32 vaddr, u32 kernel, u32 writeable);
+    u32 map(u32 vaddr, u32 paddr, u32 kernel, u32 writeable);
+
+    page_directory *current_pd;
+
 private:
     void identity_map_kernel();
     u32 alloc_frame(page *p, u32 kernel, u32 writeable);
     u32 alloc_frame(page *p, u32 frame, u32 kernel, u32 writeable);
     void free_frame(page *p);
 
+    u32 get_paddr(u32 vaddr);
+
     class frames frames;
 
     u32 total;
     page_directory *kernel_pd;
-    page_directory *current_pd;
+    bool paging_enabled;
 };
 
 #endif
