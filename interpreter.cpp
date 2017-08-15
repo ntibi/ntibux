@@ -15,6 +15,7 @@ interpreter::interpreter(terminal &term) : term(term), commands_nbr(0)
     this->add_command("colortest", &interpreter::command_colortest);
     this->add_command("log_level", &interpreter::command_log_level);
     this->add_command("trace", &interpreter::command_trace);
+    this->add_command("mem", &interpreter::command_dumpmem);
 }
 
 int interpreter::add_command(char const name[], int (interpreter::*fun)(char **args))
@@ -162,5 +163,12 @@ int interpreter::command_trace(char **args)
 {
     (void)args;
     debug.trace();
+    return 0;
+}
+
+int interpreter::command_dumpmem(char **args)
+{
+    (void)args;
+    mem.dump();
     return 0;
 }

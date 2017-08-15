@@ -73,17 +73,6 @@ u32 mem::map(u32 vaddr, u32 paddr, u32 kernel, u32 writeable)
     return this->alloc_frame(this->get_page(vaddr), paddr, kernel, writeable);
 }
 
-page *mem::get_page_no_create(u32 address)
-{
-    u32 directory_index;
-    u32 table_index;
-
-    directory_index = (address >> 22) & 0x3ff;
-    table_index = (address >> 12) & 0x3ff;
-    if (!this->current_pd->tables[directory_index])
-        return 0;
-    return &this->current_pd->tables[directory_index]->pages[table_index];
-}
 page *mem::get_page(u32 address)
 {
     u32 directory_index;
@@ -121,10 +110,36 @@ void mem::switch_page_directory(struct page_directory *pd)
 
 u32 mem::get_paddr(u32 vaddr)
 {
-    page *p;
+    return (this->current_pd->tables[(vaddr >> 22) & 0xfff]->pages[(vaddr >> 12) & 0xfff].address & ~0xfff) + (vaddr & 0xfff);
+}
 
-    p = this->get_page_no_create(vaddr);
-    return (p->address << 12) + (vaddr & 0xfff);
+void mem::dump()
+{
+    u32 i, j;
+    u32 istart, prev, current;
+
+    for (i = 0; i < 1024; ++i)
+    {
+        if (this->current_pd->tables[i])
+        {
+            prev = 0;
+            for (j = 0; j < 1024; ++j)
+            {
+                current = this->current_pd->tables[i]->pages[j].address;
+                if (!prev)
+                {
+                    if (current)
+                        istart = j;
+                }
+                else
+                {
+                    if (!current)
+                        term.printk("0x%8x - 0x%8x\n", (i << 22) + (istart << 12), (i << 22) + (j << 12));
+                }
+                prev = current;
+            }
+        }
+    }
 }
 
 void frames::init(u32 nframes)

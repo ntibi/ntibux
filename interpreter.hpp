@@ -41,6 +41,7 @@ private:
     int command_colortest(char **args);
     int command_log_level(char **args);
     int command_trace(char **args);
+    int command_dumpmem(char **args);
 };
 
 #endif

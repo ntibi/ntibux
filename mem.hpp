@@ -72,10 +72,10 @@ public:
     void init(u32 high_mem);
     class kheap kheap;
     page *get_page(u32 address);
-    page *get_page_no_create(u32 address);
     void switch_page_directory(struct page_directory *pd);
     u32 map(u32 vaddr, u32 kernel, u32 writeable);
     u32 map(u32 vaddr, u32 paddr, u32 kernel, u32 writeable);
+    void dump();
 
     page_directory *current_pd;
 
