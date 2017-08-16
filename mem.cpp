@@ -35,7 +35,7 @@ mem::mem() : kheap(), total(0), paging_enabled(false) { }
 void mem::init(u32 high_mem)
 {
     this->total = high_mem * 1024;
-    term.printk(KERN_INFO LOG_MM "detected mem: %uMB\n", this->total >> 20);
+    term.printk(KERN_INFO LOG_MM "detected mem: %uMB (%u pages)\n", this->total >> 20, (this->total) / PAGESIZE);
 
     this->kheap.init(PAGESIZE * 128);
     this->frames.init(this->total / PAGESIZE);
