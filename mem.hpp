@@ -72,6 +72,7 @@ public:
     void init(u32 high_mem);
     class kheap kheap;
     page *get_page(u32 address);
+    void enable_paging();
     void switch_page_directory(struct page_directory *pd);
     void invalidate_page(u32 page_addr);
     u32 map(u32 vaddr, u32 kernel, u32 writeable);
