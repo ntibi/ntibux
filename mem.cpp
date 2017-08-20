@@ -108,6 +108,11 @@ void mem::switch_page_directory(struct page_directory *pd)
             :: "r"(pd->paddrs));
 }
 
+void mem::invalidate_page(u32 page_addr)
+{
+    asm volatile ("invlpg [%0]" :: "r"(page_addr));
+}
+
 u32 mem::get_paddr(u32 vaddr)
 {
     return (this->current_pd->tables[(vaddr >> 22) & 0xfff]->pages[(vaddr >> 12) & 0xfff].address & ~0xfff) + (vaddr & 0xfff);
