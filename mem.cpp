@@ -365,6 +365,9 @@ void kheap::free(void *addr, u32 size)
 {
     u32 order = this->get_order(size);
     this->buddy_free(addr, order);
+#ifdef DEBUG_KHEAP
+    term.printk(KERN_DEBUG LOG_KHEAP "free  %p(s:%u(%u))\n", addr, size, 1 << order);
+#endif
 }
 
 void *kheap::unpaged_alloc(u32 size) { return this->unpaged_alloc(size, 0); }
