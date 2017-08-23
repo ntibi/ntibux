@@ -18,7 +18,8 @@ int is_print(char c);
 
 
 // kmisc:
-void trace();
+void panic(char *fn, u32 line, char *msg);
+#define PANIC(msg) panic(__FILE__, __LINE__, msg)
 
 inline void outb(u16 port, u8 val)
 {
