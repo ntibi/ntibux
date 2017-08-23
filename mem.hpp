@@ -51,18 +51,41 @@ private:
 #define ALLOC_ZEROED (1 << 1)
 class kheap
 {
+    static const u32 min_order = 12; // (1 << 12) = PAGESIZE
+    static const u32 max_order = 20; // (1 << 20) = 256 * PAGESIZE
+
+    static const u32 orders = max_order - min_order + 1;
+    static const u32 min_alloc = 1 << min_order; // PAGESIZE
+    static const u32 max_alloc = 1 << max_order; // 256 * PAGESIZE
+
 public:
     kheap();
+    void *unpaged_alloc(u32 size);
+    void *unpaged_alloc(u32 size, u32 flags);
+
     void *alloc(u32 size);
     void *alloc(u32 size, u32 flags);
+
+    void free(void *addr, u32 size);
+
     void init(u32 reserve);
     void expand(u32 min);
+
     void enable_paging(); // call before activating paging
+
 private:
-    u32 reserve;
-    u32 start;
-    u32 free_zone;
-    bool paging_enabled;
+                         // PRE PAGING | POST PAGING
+    bool paging_enabled; // 0          | 1
+    u32 reserve_order;   // unused     | memory pool size order
+    u32 kheap_start;     // pool start | unpaged pool start
+    u32 free_zone;       // pool end   | pool start
+
+    u32 free_blocks[orders];
+    inline u32 &get_free_block(u32 order) { return free_blocks[order - min_order]; }
+
+    inline u32 get_order(u32 size);
+    void *buddy_alloc(u32 order);
+    void buddy_free(void *addr, u32 order);
 };
 
 class mem
