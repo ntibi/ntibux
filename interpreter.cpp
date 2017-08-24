@@ -124,13 +124,7 @@ int interpreter::command_echo(char **args)
 int interpreter::command_motd(char **args)
 {
     (void)args;
-    term.printk("%11g\n");
-    term.printk("                            _/      _/  _/                                     \n");
-    term.printk("               _/_/_/    _/_/_/_/      _/_/_/    _/    _/  _/    _/            \n");
-    term.printk("              _/    _/    _/      _/  _/    _/  _/    _/    _/_/               \n");
-    term.printk("             _/    _/    _/      _/  _/    _/  _/    _/  _/    _/              \n");
-    term.printk("            _/    _/      _/_/  _/  _/_/_/      _/_/_/  _/    _/ %3gntibux%r        \n");
-    term.printk("\n");
+    motd();
     return 0;
 }
 

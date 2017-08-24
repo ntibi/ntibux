@@ -20,4 +20,6 @@ extern class debug debug;
 extern u32 stack_top;
 extern u32 stack_bottom;
 
+void motd();
+
 #endif

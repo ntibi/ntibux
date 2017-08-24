@@ -1,5 +1,21 @@
 #include "kernel.hpp"
 
+void motd()
+{
+    term.printk("%11g\n");
+
+    term.printk("                         __        __                        \n");
+    term.printk("                        /\\ \\__  __/\\ \\                       \n");
+    term.printk("                     ___\\ \\ ,_\\/\\_\\ \\ \\____  __  __  __  _   \n");
+    term.printk("                   /' _ `\\ \\ \\/\\/\\ \\ \\ '__`\\/\\ \\/\\ \\/\\ \\/'\\  \n");
+    term.printk("                   /\\ \\/\\ \\ \\ \\_\\ \\ \\ \\ \\L\\ \\ \\ \\_\\ \\/>  </  \n");
+    term.printk("                   \\ \\_\\ \\_\\ \\__\\\\ \\_\\ \\_,__/\\ \\____//\\_/\\_\\ \n");
+    term.printk("                    \\/_/\\/_/\\/__/ \\/_/\\/___/  \\/___/ \\//\\/_/ \n");
+
+    term.printk("\n");
+}
+
+
 static void shell(terminal &term)
 {
     interpreter interp(term);
@@ -28,6 +44,8 @@ extern "C" void kernel_main(struct multiboot_info *mboot, u32 magic)
     term.set_cursor(vga_entry(' ', vga_entry_color(VGA_COLOR_BLACK, VGA_COLOR_LIGHT_GREY)));
     term.clear();
     term.set_log_level(LL_DEBUG);
+
+    motd();
 
     if (magic != MULTIBOOT_BOOTLOADER_MAGIC)
     {
