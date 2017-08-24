@@ -15,7 +15,17 @@ char *strncpy(char *dest, const char *src, size_t n);
 int strcmp(const char *s1, const char *s2);
 int is_sep(char c);
 int is_print(char c);
+inline u32 is_upper(char c);
+inline u32 is_lower(char c);
+inline u32 is_digit(char c);
+inline u32 is_bdigit(char c);
+inline u32 is_odigit(char c);
+inline u32 is_xdigit(char c);
+inline char to_upper(char c);
+inline char to_lower(char c);
 
+u32 atoi(const char *s);
+u32 atoi(const char *s, u32 base);
 
 // kmisc:
 void panic(const char fn[], u32 line, const char msg[]);
