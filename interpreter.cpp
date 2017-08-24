@@ -15,7 +15,7 @@ interpreter::interpreter(terminal &term) : term(term), commands_nbr(0)
     this->add_command("colortest", &interpreter::command_colortest);
     this->add_command("log_level", &interpreter::command_log_level);
     this->add_command("trace", &interpreter::command_trace);
-    this->add_command("mem", &interpreter::command_dumpmem);
+    this->add_command("mem", &interpreter::command_mem);
 }
 
 int interpreter::add_command(char const name[], int (interpreter::*fun)(char **args))
@@ -166,9 +166,42 @@ int interpreter::command_trace(char **args)
     return 0;
 }
 
-int interpreter::command_dumpmem(char **args)
+char usage[] = "usage: mem (dump|alloc|free)\n";
+int interpreter::command_mem(char **args)
 {
-    (void)args;
-    mem.dump();
+    if (!args[1])
+    {
+        term.printk(usage);
+        return 1;
+    }
+    else if (!strcmp("dump", args[1]))
+    {
+        mem.dump();
+    }
+    else if (!strcmp("alloc", args[1]))
+    {
+        u32 nbr;
+
+        if (args[2] && (nbr = atoi(args[2])))
+            mem.kheap.alloc(nbr * PAGESIZE);
+        else
+            term.printk("usage: mem alloc $page_nbr\n");
+    }
+    else if (!strcmp("free", args[1]))
+    {
+        u32 addr = atoi(args[2]);
+        u32 nbr = atoi(args[3]);
+
+        if (args[2] && args[3] && (addr = atoi(args[2])) && (nbr = atoi(args[3])))
+            mem.kheap.free((void*)addr, nbr * PAGESIZE);
+        else
+            term.printk("usage: mem free $addr $page_nbr\n");
+    }
+    else
+    {
+        term.printk("unknown subcommand %s\n", args[1]);
+        term.printk(usage);
+        return 1;
+    }
     return 0;
 }
