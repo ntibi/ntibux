@@ -17,6 +17,9 @@ void GDT::set_gate(u8 n, u32 base, u32 limit, u8 access, u8 flags)
     this->gdt_entries[n].access = access;
 
     this->gdt_entries_size = n + 1;
+#ifdef DEBUG_GDT
+    term.printk(KERN_DEBUG LOG_GDT "gate[%d]: base: %x, limit: %x, access: %x, flags: %x\n", n, base, limit, access, flags);
+#endif
 }
 
 void GDT::init(void)
