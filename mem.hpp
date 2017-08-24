@@ -52,11 +52,11 @@ private:
 class kheap
 {
     static const u32 min_order = 12; // (1 << 12) = PAGESIZE
-    static const u32 max_order = 20; // (1 << 20) = 256 * PAGESIZE
+    static const u32 max_order = 24; // (1 << 24) = 4096 * PAGESIZE
 
     static const u32 orders = max_order - min_order + 1;
     static const u32 min_alloc = 1 << min_order; // PAGESIZE
-    static const u32 max_alloc = 1 << max_order; // 256 * PAGESIZE
+    static const u32 max_alloc = 1 << max_order; // 4096 * PAGESIZE
 
 public:
     kheap();
@@ -69,7 +69,7 @@ public:
     void free(void *addr, u32 size);
 
     void init(u32 reserve);
-    void expand(u32 min);
+    void expand(); // double reserve
 
     void enable_paging(); // call before activating paging
 
@@ -100,6 +100,8 @@ public:
     void invalidate_page(u32 page_addr);
     u32 map(u32 vaddr, u32 kernel, u32 writeable);
     u32 map(u32 vaddr, u32 paddr, u32 kernel, u32 writeable);
+    u32 map_range(u32 vaddr, u32 range, u32 kernel, u32 writeable);
+    u32 map_range(u32 vaddr, u32 paddr, u32 range, u32 kernel, u32 writeable);
     void dump();
 
     page_directory *current_pd;
