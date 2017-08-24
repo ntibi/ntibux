@@ -69,7 +69,7 @@ public:
     void free(void *addr, u32 size);
 
     void init(u32 reserve);
-    void expand(); // double reserve
+    void double_reserve(); // double reserve
 
     void enable_paging(); // call before activating paging
 
@@ -89,7 +89,7 @@ private:
 };
 
 class mem
-{
+{ // TODO: write and use TLB flushing functions (invlpg instruction)
 public:
     mem();
     void init(u32 high_mem);

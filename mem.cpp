@@ -53,7 +53,7 @@ void mem::identity_map_kernel()
     this->kernel_pd = (page_directory*)this->kheap.unpaged_alloc(sizeof(page_directory), ALLOC_ALIGNED | ALLOC_ZEROED);
     this->current_pd = this->kernel_pd;
 
-    this->map_range(0, 0, kend, 1, 1); // identity mapping kernel code
+    this->map_range(0, 0, kend, 1, 0); // identity mapping kernel code
     term.printk(KERN_INFO LOG_MM "identity mapped the %d first frames (0x%x - 0x%x)\n", ((kend + 0xfff) & 0xfffff000) / PAGESIZE, 0, (kend + 0xfff) & 0xfffff000);
 }
 
@@ -315,7 +315,7 @@ void kheap::enable_paging()
     *(u32*)this->get_free_block(this->reserve_order) = 0;
 }
 
-void kheap::expand()
+void kheap::double_reserve()
 {
     if (this->reserve_order >= kheap::max_order)
     {
@@ -341,7 +341,7 @@ void *kheap::buddy_alloc(u32 order)
         {
             if (order > kheap::max_order)
                 PANIC("too big alloc for buddy");
-            this->expand();
+            this->double_reserve();
         }
     }
 
