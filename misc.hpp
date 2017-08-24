@@ -24,8 +24,8 @@ inline u32 is_xdigit(char c);
 inline char to_upper(char c);
 inline char to_lower(char c);
 
-u32 atoi(const char *s);
-u32 atoi(const char *s, u32 base);
+u32 atoi(const char *s); // call with a base prefix (ex: 0xdab)
+u32 atoi(const char *s, u32 base); // call without a base prefix (e.g. "cafebabe", 16)
 
 // kmisc:
 void panic(const char fn[], u32 line, const char msg[]);

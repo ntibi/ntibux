@@ -88,15 +88,6 @@ u32 atoi(const char *s, u32 base)
     static u32 (*is_digit_base[]) (char) = {NULL, NULL, is_bdigit, NULL, NULL, NULL, NULL, NULL, is_odigit, NULL, is_digit, NULL, NULL, NULL, NULL, NULL, is_xdigit};
     u32 out = 0;
 
-    switch (base)
-    {
-        case 16: // 0x...
-        case 2:  // 0b...
-            s += 1;
-        case 8:  // 0...
-            s += 1;
-        default: break;
-    }
     while (is_digit_base[base](*s))
     {
         out = out * base + (to_lower(*s) - (is_lower(*s) ? 'a' - 10 : '0'));
@@ -117,6 +108,15 @@ u32 atoi(const char *s)
             base = 2;
         else
             base = 8;
+    }
+    switch (base)
+    {
+        case 16:
+        case 2:
+            s += 1;
+        case 8:
+            s += 1;
+        default: break;
     }
     return atoi(s, base);
 }
