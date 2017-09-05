@@ -253,7 +253,7 @@ void frames::status()
         for (tmp = frames[i]; tmp; tmp >>=1, ++nbr);
     }
     term.printk("physical memory usage:\n");
-    term.printk("%d/%d pages\n", nbr, this->nframes);
+    term.printk("%d/%d pages (%d%%)\n", nbr, this->nframes, nbr * 100 / this->nframes);
 }
 
 u32 mem::alloc_frame(page *p, u32 kernel, u32 writeable)
@@ -316,7 +316,7 @@ void kheap::init(u32 reserve)
     }
 
 #ifdef DEBUG_KHEAP
-    term.printk(KERN_DEBUG LOG_KHEAP "reserve size: 0x%x(order %d/%d/%d)\n", 1U << this->reserve_order, this->min_order, this->reserve_order, this->max_order);
+    term.printk(KERN_DEBUG LOG_KHEAP "reserve size: 0x%x(order %d<%d<%d)\n", 1U << this->reserve_order, this->min_order, this->reserve_order, this->max_order);
 #endif
 
     this->kheap_start = (kend + 0xfff) & ~0xfff;
@@ -335,8 +335,8 @@ void kheap::enable_paging()
     term.printk(KERN_DEBUG LOG_KHEAP "identity mapping %p -> %p\n", this->kheap_start, new_free_zone);
 #endif
     // TODO: kheap_start->new_free_zone may not be enough to allocate pages needed for the map/map_range used in the fun
-	// TODO: replace                                    _____________ by rounded this->free_zone
-    mem.map_range(this->kheap_start, this->kheap_start, new_free_zone - this->kheap_start, 1, 1); // identity map already used memory
+    this->free_zone = (this->free_zone + 0xfff) & ~0xfff;
+    mem.map_range(this->kheap_start, this->kheap_start, this->free_zone - this->kheap_start, 1, 1); // identity map already used memory
 
 #ifdef DEBUG_KHEAP
     term.printk(KERN_DEBUG LOG_KHEAP "classic mapping %p -> %p\n", new_free_zone, new_free_zone + (1 << this->reserve_order));
