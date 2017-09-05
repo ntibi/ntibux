@@ -51,6 +51,7 @@ private:
 #define ALLOC_ZEROED (1 << 1)
 class kheap
 {
+    // TODO: dynamic values according to available mem
     static const u32 min_order = 12; // (1 << 12) = PAGESIZE
     static const u32 max_order = 24; // (1 << 24) = 4096 * PAGESIZE
 

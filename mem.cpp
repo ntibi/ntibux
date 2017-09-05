@@ -75,11 +75,10 @@ u32 mem::map_range(u32 vaddr, u32 range, u32 kernel, u32 writeable)
     u32 i = 0;
 
     vaddr &= 0xfffff000;
-    range &= 0xfffff000;
     while (i < range)
     {
         if (!this->map(vaddr + i, kernel, writeable))
-            return 0;
+            PANIC("can't map requested memory");
         i += PAGESIZE;
     }
     return 1;
@@ -94,7 +93,7 @@ u32 mem::map_range(u32 vaddr, u32 paddr, u32 range, u32 kernel, u32 writeable)
     while (i < range)
     {
         if (!this->map(vaddr + i, paddr + i, kernel, writeable))
-            return 0;
+            PANIC("can't map requested memory");
         i += PAGESIZE;
     }
     return 1;
@@ -155,7 +154,7 @@ void mem::invalidate_page(u32 page_addr)
 
 u32 mem::get_paddr(u32 vaddr)
 {
-    return (this->current_pd->tables[(vaddr >> 22) & 0xfff]->pages[(vaddr >> 12) & 0xfff].address & ~0xfff) + (vaddr & 0xfff);
+    return (this->current_pd->tables[(vaddr >> 22) & 0x3ff]->pages[(vaddr >> 12) & 0x3ff].address & ~0xfff) + (vaddr & 0xfff);
 }
 
 void mem::dump()
@@ -167,8 +166,8 @@ void mem::dump()
     start_addr = 0;
     for (u32 addr = 0; addr < 1024U * 1024U * 4096U - 4096; addr += PAGESIZE)
     {
-        if (this->current_pd->tables[(addr >> 22) & 0xfff] && this->current_pd->tables[(addr >> 22) & 0xfff]->pages[(addr >> 12) & 0xfff].address)
-            current = this->current_pd->tables[(addr >> 22) & 0xfff]->pages[(addr >> 12) & 0xfff].address;
+        if (this->current_pd->tables[(addr >> 22) & 0x3ff] && this->current_pd->tables[(addr >> 22) & 0x3ff]->pages[(addr >> 12) & 0x3ff].address)
+            current = this->current_pd->tables[(addr >> 22) & 0x3ff]->pages[(addr >> 12) & 0x3ff].address;
         else
             current = 0;
 
@@ -180,7 +179,9 @@ void mem::dump()
                 dump = true;
         }
         else if (prev) // fin de pages contigues
+        {
             dump = true;
+        }
 
         if (dump)
         {
@@ -241,6 +242,8 @@ u32 mem::alloc_frame(page *p, u32 kernel, u32 writeable)
     u32 frame;
 
     frame = this->frames.get_free_frame();
+    if (!frame)
+        PANIC("no available frame found");
     return this->alloc_frame(p, frame, kernel, writeable);
 }
 
@@ -302,10 +305,11 @@ void kheap::enable_paging()
     term.printk(KERN_DEBUG LOG_KHEAP "identity mapping %p -> %p\n", this->kheap_start, new_free_zone);
 #endif
     // TODO: kheap_start->new_free_zone may not be enough to allocate pages needed for the map/map_range used in the fun
-    mem.map_range(this->kheap_start, this->kheap_start, new_free_zone - this->kheap_start, 1, 1); // identity map already used memory
+	// TODO: do not map all the mem between kheap_start and new_free_zone (map only used mem and lazy map in unpaged_alloc)
+    mem.map_range(this->kheap_start, this->kheap_start, new_free_zone - this->kheap_start, 1, 1);
 
 #ifdef DEBUG_KHEAP
-    term.printk(KERN_DEBUG LOG_KHEAP "classic  mapping %p -> %p\n", new_free_zone, new_free_zone + (1 << this->reserve_order));
+    term.printk(KERN_DEBUG LOG_KHEAP "classic mapping %p -> %p\n", new_free_zone, new_free_zone + (1 << this->reserve_order));
 #endif
     mem.map_range(new_free_zone, 1U << this->reserve_order, 1, 1); // classic map for the reserve
 
