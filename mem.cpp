@@ -54,7 +54,9 @@ void mem::identity_map_kernel()
     this->current_pd = this->kernel_pd;
 
     this->map_range(0, 0, kend, 1, 0); // identity mapping kernel code
-    term.printk(KERN_INFO LOG_MM "identity mapped the %d first frames (0x%x - 0x%x)\n", ((kend + 0xfff) & 0xfffff000) / PAGESIZE, 0, (kend + 0xfff) & 0xfffff000);
+#ifdef DEBUG_MM
+    term.printk(KERN_DEBUG LOG_MM "identity mapped the %d first frames (0x%x - 0x%x)\n", ((kend + 0xfff) & 0xfffff000) / PAGESIZE, 0, (kend + 0xfff) & 0xfffff000);
+#endif
 }
 
 u32 mem::map(u32 vaddr, u32 kernel, u32 writeable)
@@ -132,7 +134,9 @@ page *mem::get_page(u32 address)
 
 void mem::enable_paging()
 {
+#ifdef DEBUG_MM
     term.printk(KERN_DEBUG LOG_MM "enabling paging\n");
+#endif
     asm volatile (
             "mov eax, cr0;"
             "or eax, 0x80000000;"
@@ -143,7 +147,9 @@ void mem::enable_paging()
 void mem::switch_page_directory(struct page_directory *pd)
 {
     this->current_pd = pd;
+#ifdef DEBUG_MM
     term.printk(KERN_DEBUG LOG_MM "switching page directory\n");
+#endif
     asm volatile ("mov cr3, %0;" :: "r"(pd->paddrs));
 }
 
