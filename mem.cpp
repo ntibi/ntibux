@@ -259,7 +259,7 @@ void frames::status()
         for (tmp = frames[i]; tmp; tmp >>=1, ++nbr);
     }
     term.printk("physical memory usage:\n");
-    term.printk("%d/%d pages (%d%%)\n", nbr, this->nframes, nbr * 100 / this->nframes);
+    term.printk("  %d/%d pages (%d%%)\n", nbr, this->nframes, nbr * 100 / this->nframes);
 }
 
 u32 mem::alloc_frame(page *p, u32 kernel, u32 writeable)
@@ -342,6 +342,7 @@ void kheap::enable_paging()
 #endif
     // TODO: kheap_start->new_free_zone may not be enough to allocate pages needed for the map/map_range used in the fun
     this->free_zone = (this->free_zone + 0xfff) & ~0xfff;
+
     mem.map_range(this->kheap_start, this->kheap_start, this->free_zone - this->kheap_start, 1, 1); // identity map already used memory
 
 #ifdef DEBUG_KHEAP
@@ -466,10 +467,10 @@ void *kheap::unpaged_alloc(u32 size, u32 flags)
 {
     void *out;
 
+    if (this->paging_enabled)
+        mem.map_range(this->free_zone, size, 1, 1);
     if (flags & ALLOC_ALIGNED)
-    {
         this->free_zone = (this->free_zone + 0xfff) & ~0xfff;
-    }
     out = (void*)this->free_zone;
     this->free_zone += size;
     if (flags & ALLOC_ZEROED)
