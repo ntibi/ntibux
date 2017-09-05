@@ -340,11 +340,11 @@ void kheap::enable_paging()
     this->free_zone = (this->free_zone + 0xfff) & ~0xfff;
 
 #ifdef DEBUG_KHEAP
-    term.printk(KERN_DEBUG LOG_KHEAP "identity mapping %p -> %p\n", this->kheap_start, this->free_zone);
+    term.printk(KERN_DEBUG LOG_KHEAP "identity mapping %p -> %p\n", this->kheap_start, this->free_zone + PAGESIZE);
 #endif
-    // TODO: kheap_start->new_free_zone may not be enough to allocate pages needed for the map/map_range used in the fun
 
-    mem.map_range(this->kheap_start, this->kheap_start, this->free_zone - this->kheap_start, 1, 1); // identity map already used memory
+    //                                                                                      __________/ needed for the mapping of the reserve
+    mem.map_range(this->kheap_start, this->kheap_start, this->free_zone - this->kheap_start + PAGESIZE, 1, 1); // identity map already used memory
 
 #ifdef DEBUG_KHEAP
     term.printk(KERN_DEBUG LOG_KHEAP "classic mapping %p -> %p\n", new_free_zone, new_free_zone + (1 << this->reserve_order));
@@ -468,8 +468,6 @@ void *kheap::unpaged_alloc(u32 size, u32 flags)
 {
     void *out;
 
-    if (this->paging_enabled)
-        mem.map_range(this->free_zone, size, 1, 1);
     if (flags & ALLOC_ALIGNED)
         this->free_zone = (this->free_zone + 0xfff) & ~0xfff;
     out = (void*)this->free_zone;
