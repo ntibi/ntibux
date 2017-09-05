@@ -160,13 +160,17 @@ int interpreter::command_trace(char **args)
     return 0;
 }
 
-char usage[] = "usage: mem (dump|alloc|free)\n";
+char usage[] = "usage: mem (status|dump|alloc|free)\n";
 int interpreter::command_mem(char **args)
 {
     if (!args[1])
     {
         term.printk(usage);
         return 1;
+    }
+    else if (!strcmp("status", args[1]))
+    {
+        mem.status();
     }
     else if (!strcmp("dump", args[1]))
     {

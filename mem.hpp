@@ -42,6 +42,7 @@ public:
     void unmark_frame(u32 faddr);
     u32 is_free(u32 faddr);
     u32 get_free_frame();
+    void status();
 private:
     u32 *frames;
     u32 nframes;
@@ -103,6 +104,7 @@ public:
     u32 map(u32 vaddr, u32 paddr, u32 kernel, u32 writeable);
     u32 map_range(u32 vaddr, u32 range, u32 kernel, u32 writeable);
     u32 map_range(u32 vaddr, u32 paddr, u32 range, u32 kernel, u32 writeable);
+    void status();
     void dump();
 
     page_directory *current_pd;

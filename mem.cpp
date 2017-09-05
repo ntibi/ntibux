@@ -157,6 +157,11 @@ u32 mem::get_paddr(u32 vaddr)
     return (this->current_pd->tables[(vaddr >> 22) & 0x3ff]->pages[(vaddr >> 12) & 0x3ff].address & ~0xfff) + (vaddr & 0xfff);
 }
 
+void mem::status()
+{
+    this->frames.status();
+}
+
 void mem::dump()
 {
     u32 start_addr, prev, current;
@@ -235,6 +240,20 @@ u32 frames::get_free_frame()
         }
     }
     return 0;
+}
+
+void frames::status()
+{
+    u32 nbr = 0;
+    u32 tmp;
+    u32 i;
+
+    for (i = 0; i < index(this->nframes); ++i)
+    {
+        for (tmp = frames[i]; tmp; tmp >>=1, ++nbr);
+    }
+    term.printk("physical memory usage:\n");
+    term.printk("%d/%d pages\n", nbr, this->nframes);
 }
 
 u32 mem::alloc_frame(page *p, u32 kernel, u32 writeable)
