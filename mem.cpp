@@ -34,7 +34,7 @@ mem::mem() : kheap(), total(0), paging_enabled(false) { }
 
 void mem::init(u32 high_mem)
 {
-    this->total = high_mem * 1024;
+    this->total = high_mem << 10;
     term.printk(KERN_INFO LOG_MM "detected mem: %uMB (%u pages)\n", this->total >> 20, (this->total) / PAGESIZE);
 
     this->kheap.init(PAGESIZE * 64);
@@ -270,25 +270,34 @@ kheap::kheap() : paging_enabled(false), reserve_order(0), kheap_start(0), free_z
 
 void kheap::init(u32 reserve)
 {
+    this->min_order = 12; // (1 << 12) = PAGESIZE
+    this->max_order = this->min_order;
+    while ((1U << this->max_order) < mem.total) ++this->max_order;
+    this->max_order = this->max_order - 3; // 1/8 of the total memory
+
+    this->orders = max_order - min_order + 1;
+    this->min_alloc = 1 << min_order; // PAGESIZE
+    this->max_alloc = 1 << max_order;
+
     reserve = (reserve + 0xfff) & ~0xfff; // reserve must be at least a page
     while ((1U << this->reserve_order) < reserve) ++this->reserve_order; // get reserve order
-    if (this->reserve_order < kheap::min_order)
+    if (this->reserve_order < this->min_order)
     {
 #ifdef DEBUG_KHEAP
-        term.printk(KERN_WARNING LOG_KHEAP "kernel heap reserve is too small (%d), scaled up to (%d)\n", this->reserve_order, kheap::min_order);
+        term.printk(KERN_WARNING LOG_KHEAP "kernel heap reserve is too small (%d), scaled up to (%d)\n", this->reserve_order, this->min_order);
 #endif
-        this->reserve_order = kheap::min_order;
+        this->reserve_order = this->min_order;
     }
-    if (this->reserve_order > kheap::max_order)
+    if (this->reserve_order > this->max_order)
     {
 #ifdef DEBUG_KHEAP
-        term.printk(KERN_WARNING LOG_KHEAP "kernel heap reserve is too big (%d), scaled down to (%d)\n", this->reserve_order, kheap::max_order);
+        term.printk(KERN_WARNING LOG_KHEAP "kernel heap reserve is too big (%d), scaled down to (%d)\n", this->reserve_order, this->max_order);
 #endif
-        this->reserve_order = kheap::max_order;
+        this->reserve_order = this->max_order;
     }
 
 #ifdef DEBUG_KHEAP
-    term.printk(KERN_DEBUG LOG_KHEAP "reserve size: 0x%x(order %d/%d/%d)\n", 1U << this->reserve_order, kheap::min_order, this->reserve_order, kheap::max_order);
+    term.printk(KERN_DEBUG LOG_KHEAP "reserve size: 0x%x(order %d/%d/%d)\n", 1U << this->reserve_order, this->min_order, this->reserve_order, this->max_order);
 #endif
 
     this->kheap_start = (kend + 0xfff) & ~0xfff;
@@ -297,7 +306,9 @@ void kheap::init(u32 reserve)
 
 void kheap::enable_paging()
 {
-    u32 new_free_zone = (this->free_zone + ((1 << kheap::max_order) - 1)) & ~((1 << kheap::max_order) - 1); // max_order last bits must be 0 at the beginning
+    u32 new_free_zone = (this->free_zone + ((1 << this->max_order) - 1)) & ~((1 << this->max_order) - 1); // max_order last bits must be 0 at the beginning
+
+    this->free_blocks = (u32*)this->unpaged_alloc(sizeof(u32) * this->orders, ALLOC_ZEROED);
 
     this->paging_enabled = true;
 
@@ -305,8 +316,8 @@ void kheap::enable_paging()
     term.printk(KERN_DEBUG LOG_KHEAP "identity mapping %p -> %p\n", this->kheap_start, new_free_zone);
 #endif
     // TODO: kheap_start->new_free_zone may not be enough to allocate pages needed for the map/map_range used in the fun
-	// TODO: do not map all the mem between kheap_start and new_free_zone (map only used mem and lazy map in unpaged_alloc)
-    mem.map_range(this->kheap_start, this->kheap_start, new_free_zone - this->kheap_start, 1, 1);
+	// TODO: replace                                    _____________ by rounded this->free_zone
+    mem.map_range(this->kheap_start, this->kheap_start, new_free_zone - this->kheap_start, 1, 1); // identity map already used memory
 
 #ifdef DEBUG_KHEAP
     term.printk(KERN_DEBUG LOG_KHEAP "classic mapping %p -> %p\n", new_free_zone, new_free_zone + (1 << this->reserve_order));
@@ -321,7 +332,7 @@ void kheap::enable_paging()
 
 void kheap::double_reserve()
 {
-    if (this->reserve_order >= kheap::max_order)
+    if (this->reserve_order >= this->max_order)
     {
         term.printk(KERN_WARNING LOG_KHEAP "cannot expand heap reserve anymore\n");
         return ;
@@ -343,7 +354,7 @@ void *kheap::buddy_alloc(u32 order)
     {
         while (order >= this->reserve_order)
         {
-            if (order > kheap::max_order)
+            if (order > this->max_order)
                 PANIC("too big alloc for buddy");
             this->double_reserve();
         }
@@ -393,8 +404,8 @@ inline u32 kheap::get_order(u32 size)
     u32 order = 0;
 
     while ((1U << order) < size) ++order;
-    if (order < kheap::min_order)
-        order = kheap::min_order;
+    if (order < this->min_order)
+        order = this->min_order;
     return order;
 }
 

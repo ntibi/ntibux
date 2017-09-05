@@ -51,14 +51,6 @@ private:
 #define ALLOC_ZEROED (1 << 1)
 class kheap
 {
-    // TODO: dynamic values according to available mem
-    static const u32 min_order = 12; // (1 << 12) = PAGESIZE
-    static const u32 max_order = 24; // (1 << 24) = 4096 * PAGESIZE
-
-    static const u32 orders = max_order - min_order + 1;
-    static const u32 min_alloc = 1 << min_order; // PAGESIZE
-    static const u32 max_alloc = 1 << max_order; // 4096 * PAGESIZE
-
 public:
     kheap();
     void *unpaged_alloc(u32 size);
@@ -75,13 +67,21 @@ public:
     void enable_paging(); // call before activating paging
 
 private:
+
+    u32 min_order;
+    u32 max_order;
+
+    u32 orders;
+    u32 min_alloc;
+    u32 max_alloc;
+
                          // PRE PAGING | POST PAGING
     bool paging_enabled; // 0          | 1
     u32 reserve_order;   // unused     | memory pool size order
     u32 kheap_start;     // pool start | unpaged pool start
     u32 free_zone;       // pool end   | pool start
 
-    u32 free_blocks[orders];
+    u32 *free_blocks;
     inline u32 &get_free_block(u32 order) { return free_blocks[order - min_order]; }
 
     inline u32 get_order(u32 size);
@@ -107,6 +107,8 @@ public:
 
     page_directory *current_pd;
 
+    u32 total;
+
 private:
     void identity_map_kernel();
     u32 alloc_frame(page *p, u32 kernel, u32 writeable);
@@ -117,7 +119,6 @@ private:
 
     class frames frames;
 
-    u32 total;
     page_directory *kernel_pd;
     bool paging_enabled;
 };
