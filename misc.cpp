@@ -34,16 +34,6 @@ void *memset(void *s, int c, size_t n)
     return s;
 }
 
-int is_sep(char c)
-{
-    return (c == ' ' || c == '\t' || c == '\n');
-}
-
-int is_print(char c)
-{
-    return (c >= 0x20 && c <= 0x7e);
-}
-
 char *strcpy(char *dest, const char *src)
 {
     size_t i;
@@ -74,14 +64,16 @@ int strcmp(const char *s1, const char *s2)
     return *s2 - *s1;
 }
 
-inline u32 is_upper(char c) { return (c >= 'A' && c <= 'Z'); }
-inline u32 is_lower(char c) { return (c >= 'a' && c <= 'z'); }
-inline u32 is_digit(char c) { return (c >= '0' && c <= '9'); }
-inline u32 is_bdigit(char c) { return (c >= '0' && c <= '1'); }
-inline u32 is_odigit(char c) { return (c >= '0' && c <= '7'); }
-inline u32 is_xdigit(char c) { return ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f')); }
-inline char to_upper(char c) { return is_lower(c) ? c + ('A' - 'a') : c; }
-inline char to_lower(char c) { return is_upper(c) ? c + ('a' - 'A'): c; }
+char *strchr(const char *s, int c)
+{
+    while (*s)
+    {
+        if (c == *s)
+            return (char*)s;
+        ++s;
+    }
+    return 0;
+}
 
 u32 atoi(const char *s, u32 base)
 {

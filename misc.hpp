@@ -13,16 +13,17 @@ void *memset(void *s, int c, size_t n);
 char *strcpy(char *dest, const char *src);
 char *strncpy(char *dest, const char *src, size_t n);
 int strcmp(const char *s1, const char *s2);
-int is_sep(char c);
-int is_print(char c);
-inline u32 is_upper(char c);
-inline u32 is_lower(char c);
-inline u32 is_digit(char c);
-inline u32 is_bdigit(char c);
-inline u32 is_odigit(char c);
-inline u32 is_xdigit(char c);
-inline char to_upper(char c);
-inline char to_lower(char c);
+char *strchr(const char *s, int c);
+inline u32 is_sep(char c) { return (c == ' ' || c == '\t' || c == '\n'); }
+inline u32 is_print(char c) { return (c >= 0x20 && c <= 0x7e); }
+inline u32 is_upper(char c) { return (c >= 'A' && c <= 'Z'); }
+inline u32 is_lower(char c) { return (c >= 'a' && c <= 'z'); }
+inline u32 is_digit(char c) { return (c >= '0' && c <= '9'); }
+inline u32 is_bdigit(char c) { return (c >= '0' && c <= '1'); }
+inline u32 is_odigit(char c) { return (c >= '0' && c <= '7'); }
+inline u32 is_xdigit(char c) { return ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f')); }
+inline char to_upper(char c) { return is_lower(c) ? c + ('A' - 'a') : c; }
+inline char to_lower(char c) { return is_upper(c) ? c + ('a' - 'A'): c; }
 
 u32 atoi(const char *s); // call with a base prefix (e.g. 0xdab)
 u32 atoi(const char *s, u32 base); // call without a base prefix (e.g. "cafebabe", 16)

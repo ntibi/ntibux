@@ -16,6 +16,7 @@ interpreter::interpreter() : commands_nbr(0)
     this->add_command("log_level", &interpreter::command_log_level);
     this->add_command("trace", &interpreter::command_trace);
     this->add_command("mem", &interpreter::command_mem);
+    this->add_command("x", &interpreter::command_x);
 }
 
 int interpreter::add_command(char const name[], int (interpreter::*fun)(char **args))
@@ -198,8 +199,82 @@ int interpreter::command_mem(char **args)
     else
     {
         term.printk("unknown subcommand %s\n", args[1]);
-        term.printk(usage);
-        return 1;
+        goto usage;
     }
     return 0;
+
+usage:
+    term.printk("usage: mem (status|dump|alloc|free)\n");
+    return 1;
+}
+
+int interpreter::command_x(char **args)
+{
+    u32 address, rep, ptr;
+    char *param;
+    char fmt;
+
+    if (!args[1])
+        goto usage;
+    if (args[1] && args[2] && args[1][0] == '/')
+    {
+        param = args[1] + 1; // skip the '/'
+        if (strchr("xdiuc", param[0]))
+        {
+            fmt = param[0];
+            ++param;
+        }
+        else if (is_digit(param[0]))
+        {
+            fmt = 'x';
+        }
+        else
+        {
+            goto usage;
+        }
+        if (!param[0])
+            rep = 1;
+        else
+            rep = atoi(param);
+        address = atoi(args[2]);
+    }
+    else
+    {
+        rep = 1;
+        address = atoi(args[1]);
+        fmt = 'x';
+    }
+    ptr = address;
+    while (rep--)
+    {
+        if ((address & 0xf) == (ptr & 0xf))
+            term.printk("%8x:", ptr);
+        switch (fmt)
+        {
+            case 'd':
+            case 'i':
+                term.printk(" %d", *(u32*)ptr); break;
+            case 'u':
+                term.printk(" %u", *(u32*)ptr); break;
+            case 'c':
+                term.printk(" %c%c%c%c",
+                        is_print(((char*)ptr)[0]) && !is_sep(((char*)ptr)[0]) ? (((char*)ptr)[0]) : ' ',
+                        is_print(((char*)ptr)[1]) && !is_sep(((char*)ptr)[1]) ? (((char*)ptr)[1]) : ' ',
+                        is_print(((char*)ptr)[2]) && !is_sep(((char*)ptr)[2]) ? (((char*)ptr)[2]) : ' ',
+                        is_print(((char*)ptr)[3]) && !is_sep(((char*)ptr)[3]) ? (((char*)ptr)[3]) : ' ');
+                break;
+            case 'x':
+                term.printk(" 0x%8x", *(u32*)ptr); break;
+        }
+        ptr += 4;
+        if ((address & 0xf) == (ptr & 0xf))
+            term.printk("\n");
+    }
+    term.printk("\n");
+
+    return 0;
+
+usage:
+    term.printk("usage: %s (/(x|d|i|u|c)?nbr)? address\n", args[0]);
+    return 1;
 }
