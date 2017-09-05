@@ -16,9 +16,9 @@ void motd()
 }
 
 
-static void shell(terminal &term)
+static void shell()
 {
-    interpreter interp(term);
+    interpreter interp;
     char buf[MAX_LINE_LEN];
     size_t len;
     int ret;
@@ -61,5 +61,5 @@ extern "C" void kernel_main(struct multiboot_info *mboot, u32 magic)
     gdt.init();
     mem.init(mboot->mem_upper);
 
-    shell(term);
+    shell();
 }

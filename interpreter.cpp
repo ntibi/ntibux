@@ -4,7 +4,7 @@ command::command(void) : fun(NULL) { }
 command::command(const command &c) : fun(c.fun) { strcpy(this->name, c.name); }
 command::command(char name[], int (interpreter::*fun)(char **args)) : fun(fun) { strncpy(this->name, name, MAX_COMMAND_NAME_LEN); }
 
-interpreter::interpreter(terminal &term) : term(term), commands_nbr(0)
+interpreter::interpreter() : commands_nbr(0)
 {
     this->add_command("help", &interpreter::command_help);
     this->add_command("clear", &interpreter::command_clear);

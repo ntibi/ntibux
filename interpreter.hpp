@@ -23,13 +23,12 @@ public:
 class interpreter
 {
 public:
-    interpreter(terminal &term);
+    interpreter();
     int interpret(char *line);
     int add_command(char const name[], int (interpreter::*fun)(char **args));
 private:
     int exec_cmd(char *cmd, char **args);
     void split(char *string, char *splits[]);
-    terminal &term;
     command commands[MAX_COMMANDS_NUMBER];
     size_t commands_nbr;
 
