@@ -101,6 +101,32 @@ u32 mem::map_range(u32 vaddr, u32 paddr, u32 range, u32 kernel, u32 writeable)
     return 1;
 }
 
+u32 mem::unmap(u32 vaddr)
+{
+    u32 i;
+    u32 directory_index = (vaddr >> 22) & 0x3ff;
+    u32 table_index = (vaddr >> 12) & 0x3ff;
+
+    vaddr &= ~0xfff;
+    if (!this->current_pd->tables[directory_index] || !this->current_pd->tables[directory_index]->pages[table_index].address)
+        PANIC("unmapping non mapped page");
+    this->free_frame(this->get_page(vaddr));
+
+    i = 0;
+    while (i < 0x400 && !this->current_pd->tables[directory_index]->pages[i].address)
+        ++i;
+    if (i == 0x400) // this page table is now unused
+    {
+        this->kheap.free(this->current_pd->tables[directory_index], sizeof(page_table));
+        this->current_pd->tables[directory_index] = 0;
+    }
+    return 1;
+}
+
+u32 mem::unmap_range(u32 vaddr, u32 range)
+{
+    return 1;
+}
 
 page *mem::get_page(u32 address)
 {

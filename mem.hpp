@@ -104,6 +104,8 @@ public:
     u32 map(u32 vaddr, u32 paddr, u32 kernel, u32 writeable);
     u32 map_range(u32 vaddr, u32 range, u32 kernel, u32 writeable);
     u32 map_range(u32 vaddr, u32 paddr, u32 range, u32 kernel, u32 writeable);
+    u32 unmap(u32 vaddr);
+    u32 unmap_range(u32 vaddr, u32 range);
     void status();
     void dump();
 
