@@ -22,7 +22,7 @@
 // # define DEBUG_GETSCANCODE
 // # define DEBUG_READLINE
 // # define DEBUG_GDT
-# define DEBUG_KHEAP
+// # define DEBUG_KHEAP
 #endif
 
 
