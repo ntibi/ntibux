@@ -297,7 +297,7 @@ void kheap::init(u32 reserve)
 {
     this->min_order = 12; // (1 << 12) = PAGESIZE
     this->max_order = this->min_order;
-    while ((1U << this->max_order) < mem.total) ++this->max_order;
+    while ((1U << this->max_order) < mem.total && this->max_order < 32) ++this->max_order;
     this->max_order = this->max_order - 3; // 1/8 of the total memory
 
     this->orders = max_order - min_order + 1;
