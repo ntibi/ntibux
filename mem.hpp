@@ -17,7 +17,7 @@ struct page // page table entry
     page(u32 val) : address(val) { }
     page(u32 address, u32 flags) { this->address = (address & 0xfffff000) & (flags & 0xfff); }
     page& operator=(u32 v) { this->address = v; return *this; }
-    void claim(u32 frame, u32 kernel, u32 writeable);
+    void claim(u32 frame, u32 flags);
     void free(void);
 
     u32 address; // paddr(20) | flags(12)
@@ -90,6 +90,14 @@ private:
     void buddy_free(void *addr, u32 order);
 };
 
+#define MAP_RO          (0 << 1)
+#define MAP_RW          (1 << 1)
+#define MAP_KERN        (0 << 2)
+#define MAP_USER        (1 << 2)
+#define MAP_KERNEL_CODE (MAP_KERN | MAP_RO)
+#define MAP_KERNEL_DATA (MAP_KERN | MAP_RW)
+#define MAP_USER_CODE   (MAP_USER | MAP_RO)
+#define MAP_USER_DATA   (MAP_USER | MAP_RW)
 class mem
 { // TODO: write and use TLB flushing functions (invlpg instruction)
 public:
@@ -100,10 +108,10 @@ public:
     void enable_paging();
     void switch_page_directory(struct page_directory *pd);
     void invalidate_page(u32 page_addr);
-    u32 map(u32 vaddr, u32 kernel, u32 writeable);
-    u32 map(u32 vaddr, u32 paddr, u32 kernel, u32 writeable);
-    u32 map_range(u32 vaddr, u32 range, u32 kernel, u32 writeable);
-    u32 map_range(u32 vaddr, u32 paddr, u32 range, u32 kernel, u32 writeable);
+    u32 map(u32 vaddr, u32 flags);
+    u32 map(u32 vaddr, u32 paddr, u32 flags);
+    u32 map_range(u32 vaddr, u32 range, u32 flags);
+    u32 map_range(u32 vaddr, u32 paddr, u32 range, u32 flags);
     u32 unmap(u32 vaddr);
     u32 unmap_range(u32 vaddr, u32 range);
     void status();
@@ -115,8 +123,8 @@ public:
 
 private:
     void identity_map_kernel();
-    u32 alloc_frame(page *p, u32 kernel, u32 writeable);
-    u32 alloc_frame(page *p, u32 frame, u32 kernel, u32 writeable);
+    u32 alloc_frame(page *p, u32 flags);
+    u32 alloc_frame(page *p, u32 frame, u32 flags);
     void free_frame(page *p);
 
     u32 get_paddr(u32 vaddr);

@@ -9,12 +9,9 @@ u32 kend = (u32)&_kend;
 static inline u32 off(u32 b) { return b % 32; }
 static inline u32 index(u32 b) { return b / 32; }
 
-void page::claim(u32 frame, u32 kernel, u32 writeable)
+void page::claim(u32 frame, u32 flags)
 {
-    this->address = (frame & 0xfffff000) |
-                    PAGE_PRESENT |
-                    (kernel ? PAGE_KERN : PAGE_USER) |
-                    (writeable ? PAGE_RW : PAGE_RO);
+    this->address = (frame & 0xfffff000) | PAGE_PRESENT | flags;
 }
 
 void page::free(void)
@@ -53,43 +50,43 @@ void mem::identity_map_kernel()
     this->kernel_pd = (page_directory*)this->kheap.unpaged_alloc(sizeof(page_directory), ALLOC_ALIGNED | ALLOC_ZEROED);
     this->current_pd = this->kernel_pd;
 
-    this->map_range(0, 0, kend, 1, 0); // identity mapping kernel code
+    this->map_range(0, 0, kend, MAP_KERNEL_CODE); // identity mapping kernel code
 #ifdef DEBUG_MM
     term.printk(KERN_DEBUG LOG_MM "identity mapped the %d first frames (0x%x - 0x%x)\n", ((kend + 0xfff) & 0xfffff000) / PAGESIZE, 0, (kend + 0xfff) & 0xfffff000);
 #endif
 }
 
-u32 mem::map(u32 vaddr, u32 kernel, u32 writeable)
+u32 mem::map(u32 vaddr, u32 flags)
 {
     vaddr &= 0xfffff000;
-    return this->alloc_frame(this->get_page(vaddr), kernel, writeable);
+    return this->alloc_frame(this->get_page(vaddr), flags);
 }
 
-u32 mem::map(u32 vaddr, u32 paddr, u32 kernel, u32 writeable)
+u32 mem::map(u32 vaddr, u32 paddr, u32 flags)
 {
     vaddr &= 0xfffff000;
     paddr &= 0xfffff000;
-    return this->alloc_frame(this->get_page(vaddr), paddr, kernel, writeable);
+    return this->alloc_frame(this->get_page(vaddr), paddr, flags);
 }
 
-u32 mem::map_range(u32 vaddr, u32 range, u32 kernel, u32 writeable)
+u32 mem::map_range(u32 vaddr, u32 range, u32 flags)
 {
     vaddr &= 0xfffff000;
     for (u32 i = 0; i < range; i += PAGESIZE)
     {
-        if (!this->map(vaddr + i, kernel, writeable))
+        if (!this->map(vaddr + i, flags))
             PANIC("can't map requested memory");
     }
     return 1;
 }
 
-u32 mem::map_range(u32 vaddr, u32 paddr, u32 range, u32 kernel, u32 writeable)
+u32 mem::map_range(u32 vaddr, u32 paddr, u32 range, u32 flags)
 {
     vaddr &= 0xfffff000;
     paddr &= 0xfffff000;
     for (u32 i = 0; i < range; i += PAGESIZE)
     {
-        if (!this->map(vaddr + i, paddr + i, kernel, writeable))
+        if (!this->map(vaddr + i, paddr + i, flags))
             PANIC("can't map requested memory");
     }
     return 1;
@@ -284,17 +281,17 @@ void frames::status()
     term.printk("  %d/%d pages (%d%%)\n", nbr, this->nframes, nbr * 100 / this->nframes);
 }
 
-u32 mem::alloc_frame(page *p, u32 kernel, u32 writeable)
+u32 mem::alloc_frame(page *p, u32 flags)
 {
     u32 frame;
 
     frame = this->frames.get_free_frame();
     if (!frame)
         PANIC("no available frame found");
-    return this->alloc_frame(p, frame, kernel, writeable);
+    return this->alloc_frame(p, frame, flags);
 }
 
-u32 mem::alloc_frame(page *p, u32 frame, u32 kernel, u32 writeable)
+u32 mem::alloc_frame(page *p, u32 frame, u32 flags)
 {
     if (!this->frames.is_free(frame))
     {
@@ -302,7 +299,7 @@ u32 mem::alloc_frame(page *p, u32 frame, u32 kernel, u32 writeable)
         return 0;
     }
     this->frames.mark_frame(frame);
-    p->claim(frame, kernel, writeable);
+    p->claim(frame, flags);
     return 1;
 }
 
@@ -366,12 +363,12 @@ void kheap::enable_paging()
 #endif
 
     //                                                                                      __________/ needed for the mapping of the reserve
-    mem.map_range(this->kheap_start, this->kheap_start, this->free_zone - this->kheap_start + PAGESIZE, 1, 1); // identity map already used memory
+    mem.map_range(this->kheap_start, this->kheap_start, this->free_zone - this->kheap_start + PAGESIZE, MAP_KERNEL_DATA); // identity map already used memory
 
 #ifdef DEBUG_KHEAP
     term.printk(KERN_DEBUG LOG_KHEAP "classic mapping %p -> %p\n", new_free_zone, new_free_zone + (1 << this->reserve_order));
 #endif
-    mem.map_range(new_free_zone, 1U << this->reserve_order, 1, 1); // classic map for the reserve
+    mem.map_range(new_free_zone, 1U << this->reserve_order, MAP_KERNEL_DATA); // classic map for the reserve
 
     this->free_zone = new_free_zone;
 
@@ -389,7 +386,7 @@ void kheap::double_reserve()
 #ifdef DEBUG_KHEAP
     term.printk(KERN_DEBUG LOG_KHEAP "expanding reserve order %d->%d (0x%x->0x%x)\n", this->reserve_order, this->reserve_order + 1, 1U << this->reserve_order, 1U << (this->reserve_order + 1));
 #endif
-    mem.map_range(this->free_zone + (1U << this->reserve_order), 1U << this->reserve_order, 1, 1);
+    mem.map_range(this->free_zone + (1U << this->reserve_order), 1U << this->reserve_order, MAP_KERNEL_DATA);
     *(u32*)(this->free_zone + (1U << this->reserve_order)) = this->get_free_block(this->reserve_order) ? *(u32*)this->get_free_block(this->reserve_order) : 0;
     this->get_free_block(this->reserve_order) = this->free_zone + (1U << this->reserve_order);
     this->reserve_order++;
