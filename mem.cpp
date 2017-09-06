@@ -125,6 +125,8 @@ u32 mem::unmap(u32 vaddr)
 
 u32 mem::unmap_range(u32 vaddr, u32 range)
 {
+    for (u32 i = 0; i < range; i += PAGESIZE)
+        this->unmap(vaddr + i);
     return 1;
 }
 
