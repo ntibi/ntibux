@@ -74,29 +74,23 @@ u32 mem::map(u32 vaddr, u32 paddr, u32 kernel, u32 writeable)
 
 u32 mem::map_range(u32 vaddr, u32 range, u32 kernel, u32 writeable)
 {
-    u32 i = 0;
-
     vaddr &= 0xfffff000;
-    while (i < range)
+    for (u32 i = 0; i < range; i += PAGESIZE)
     {
         if (!this->map(vaddr + i, kernel, writeable))
             PANIC("can't map requested memory");
-        i += PAGESIZE;
     }
     return 1;
 }
 
 u32 mem::map_range(u32 vaddr, u32 paddr, u32 range, u32 kernel, u32 writeable)
 {
-    u32 i = 0;
-
     vaddr &= 0xfffff000;
     paddr &= 0xfffff000;
-    while (i < range)
+    for (u32 i = 0; i < range; i += PAGESIZE)
     {
         if (!this->map(vaddr + i, paddr + i, kernel, writeable))
             PANIC("can't map requested memory");
-        i += PAGESIZE;
     }
     return 1;
 }
