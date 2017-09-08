@@ -4,13 +4,17 @@ void (*pic_irq_handler[16])();
 
 void enable_interrupts()
 {
+#ifdef DEBUG_INTERRUPTS
     term.printk(KERN_DEBUG "enabling interrupts\n");
+#endif
     asm volatile ("sti");
 }
 
 void disable_interrupts()
 {
+#ifdef DEBUG_INTERRUPTS
     term.printk(KERN_DEBUG "disabling interrupts\n");
+#endif
     asm volatile ("cli");
 }
 
