@@ -60,6 +60,8 @@ extern "C" void kernel_main(struct multiboot_info *mboot, u32 magic)
     debug.init(mboot);
     gdt.init();
     mem.init(mboot->mem_upper);
+    idt.init();
+    enable_interrupts();
 
     shell();
 }

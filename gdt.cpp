@@ -45,13 +45,13 @@ void GDT::init(void)
 void GDT::load_gdt(void)
 {
     asm volatile (  "lgdt [%0];"
-                    "mov ax, 0x10;" // 0x10 <- data selector
+                    "mov ax, 0x10;" // 0x10 <- data selector (gdt[2])
                     "mov ds, ax;"
                     "mov es, ax;"
                     "mov fs, ax;"
                     "mov gs, ax;"
                     "mov ss, ax;"
-                    "jmp 0x8:flush;" // 0x8 <- code selector
+                    "jmp 0x8:flush;" // 0x8 <- code selector (gdt[1])
                     "flush:"
                     :: "r"(&this->gdt_ptr));
 #ifdef DEBUG_GDT

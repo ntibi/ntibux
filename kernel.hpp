@@ -10,11 +10,13 @@
 #include "mem.hpp"
 #include "misc.hpp"
 #include "debug.hpp"
+#include "idt.hpp"
 
 
 extern class terminal term;
 extern class GDT gdt;
 extern class mem mem;
+extern class IDT idt;
 extern class debug debug;
 
 extern u32 stack_top;

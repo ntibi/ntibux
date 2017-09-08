@@ -14,8 +14,10 @@
 #define GDT_ENTRIES_ADDRESS 0x800
 #define PAGESIZE 4096
 
-
 #define MAX_LINE_LEN 1024
+
+#define IDT_ENTRIES 256
+
 
 #ifdef DEBUG
 // # define DEBUG_GETCHAR
@@ -23,6 +25,8 @@
 // # define DEBUG_READLINE
 // # define DEBUG_GDT
 // # define DEBUG_KHEAP
+# define DEBUG_IDT
+# define DEBUG_INTERRUPTS
 #endif
 
 
@@ -55,6 +59,7 @@
 #define LOG_MM "%13gmm%r: "
 #define LOG_KHEAP "%13gkheap%r: "
 #define LOG_GDT "%13ggdt%r: "
+#define LOG_IDT "%13gidt%r: "
 
 
 typedef uint32_t u32;
