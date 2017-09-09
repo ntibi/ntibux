@@ -40,7 +40,8 @@ void mem::init(u32 high_mem)
     this->identity_map_kernel();
     this->kheap.enable_paging();
 
-    this->switch_page_directory(this->kernel_pd);
+    this->load_page_directory(this->kernel_pd);
+    this->switch_page_directory();
     this->enable_paging();
     this->paging_enabled = true;
 }
@@ -163,13 +164,17 @@ void mem::enable_paging()
             );
 }
 
-void mem::switch_page_directory(struct page_directory *pd)
+void mem::load_page_directory(struct page_directory *pd)
 {
     this->current_pd = pd;
+}
+
+void mem::switch_page_directory()
+{
 #ifdef DEBUG_MM
     term.printk(KERN_DEBUG LOG_MM "switching page directory\n");
 #endif
-    asm volatile ("mov cr3, %0;" :: "r"(pd->paddrs));
+    asm volatile ("mov cr3, %0;" :: "r"(this->current_pd->paddrs));
 }
 
 void mem::invalidate_page(u32 page_addr)

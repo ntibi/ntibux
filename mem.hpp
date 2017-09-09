@@ -106,7 +106,8 @@ public:
     class kheap kheap;
     page *get_page(u32 address);
     void enable_paging();
-    void switch_page_directory(struct page_directory *pd);
+    void load_page_directory(struct page_directory *pd); // change pd used by mapping functions
+    void switch_page_directory();                        // switch cr3 loaded pd by the loaded pd
     void invalidate_page(u32 page_addr);
     u32 map(u32 vaddr, u32 flags);
     u32 map(u32 vaddr, u32 paddr, u32 flags);
