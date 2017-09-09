@@ -1,5 +1,8 @@
 #include "interrupt_handlers.hpp"
 
+u32 interrupts_counter[256] = {0};
+u32 pic_interrupts_counter[16] = {0};
+
 void (*pic_irq_handler[16])();
 
 void enable_interrupts()
@@ -18,11 +21,27 @@ void disable_interrupts()
     asm volatile ("cli");
 }
 
+void dump_int_summary()
+{
+    for (u32 i = 0; i < sizeof(pic_interrupts_counter) / sizeof(u32); ++i)
+    {
+        if (pic_interrupts_counter[i])
+            term.printk("PIC int %x: %d\n", i, pic_interrupts_counter[i]);
+    }
+    for (u32 i = 0; i < sizeof(interrupts_counter) / sizeof(u32); ++i)
+    {
+        if (interrupts_counter[i])
+            term.printk("int %x: %d\n", i, interrupts_counter[i]);
+    }
+}
+
 void interrupt_handler(const int_registers int_regs)
 {
 #ifdef DEBUG_INTERRUPTS
     term.printk(KERN_DEBUG "int %d: 0x%x \n", int_regs.int_nbr, int_regs.err_code);
 #endif
+
+    interrupts_counter[int_regs.int_nbr]++;
 }
 
 void pic_interrupt_handler(const int_registers int_regs)
@@ -39,5 +58,7 @@ void pic_interrupt_handler(const int_registers int_regs)
         outb(PIC2_CMD, PIC_EOI);
 
     outb(PIC1_CMD, PIC_EOI);
+
+    pic_interrupts_counter[int_regs.pic_int_nbr]++;
 }
 

@@ -17,6 +17,7 @@ interpreter::interpreter() : commands_nbr(0)
     this->add_command("trace", &interpreter::command_trace);
     this->add_command("mem", &interpreter::command_mem);
     this->add_command("x", &interpreter::command_x);
+    this->add_command("int", &interpreter::command_int);
 }
 
 int interpreter::add_command(char const name[], int (interpreter::*fun)(char **args))
@@ -274,5 +275,27 @@ int interpreter::command_x(char **args)
 
 usage:
     term.printk("usage: %s (/(x|d|i|u|c)?nbr)? address\n", args[0]);
+    return 1;
+}
+
+int interpreter::command_int(char **args)
+{
+    if (!args[1])
+    {
+        goto usage;
+    }
+    else if (!strcmp("dump", args[1]))
+    {
+        dump_int_summary();
+    }
+    else
+    {
+        term.printk("unknown subcommand %s\n", args[1]);
+        goto usage;
+    }
+    return 0;
+
+usage:
+    term.printk("usage: int (dump)\n");
     return 1;
 }

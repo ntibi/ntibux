@@ -42,6 +42,7 @@ private:
     int command_trace(char **args);
     int command_mem(char **args);
     int command_x(char **args);
+    int command_int(char **args);
 };
 
 #endif

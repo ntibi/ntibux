@@ -26,6 +26,8 @@ struct int_registers // stack state when handling interrupt
 void enable_interrupts();
 void disable_interrupts();
 
+void dump_int_summary();
+
 extern "C" void interrupt_handler(const int_registers ir);
 extern "C" void pic_interrupt_handler(const int_registers ir);
 
