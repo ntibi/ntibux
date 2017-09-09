@@ -183,7 +183,7 @@ int interpreter::command_mem(char **args)
         if (args[2] && (nbr = atoi(args[2])))
             mem.kheap.alloc(nbr * PAGESIZE);
         else
-            term.printk("usage: mem alloc $page_nbr\n");
+            term.printk("usage: mem alloc $nbr_of_pages\n");
     }
     else if (!strcmp("free", args[1]))
     {
@@ -193,7 +193,7 @@ int interpreter::command_mem(char **args)
         if (args[2] && args[3] && (addr = atoi(args[2])) && (nbr = atoi(args[3])))
             mem.kheap.free((void*)addr, nbr * PAGESIZE);
         else
-            term.printk("usage: mem free $addr $page_nbr\n");
+            term.printk("usage: mem free $addr $nbr_of_pages\n");
     }
     else
     {
