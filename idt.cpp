@@ -67,6 +67,9 @@ void IDT::init()
     this->set_gate(46, pic_isr_14, SS_KCODE, IDT_PRESENT | IDT_GATE32 | IDT_DEFAULT | IDT_ALL);
     this->set_gate(47, pic_isr_15, SS_KCODE, IDT_PRESENT | IDT_GATE32 | IDT_DEFAULT | IDT_ALL);
 
+    add_interrupt_handler(0, timer_handler);
+    add_interrupt_handler(1, keyboard_handler);
+
     this->load_idt();
 }
 

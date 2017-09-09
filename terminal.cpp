@@ -107,13 +107,18 @@ void terminal::set_pos(size_t x, size_t y)
 }
 
 
+void terminal::kbd_ready_callback()
+{
+    kb.put(inb(0x60));
+}
+
 char terminal::get_scancode(void)
 {
     u8 c;
 
 wait_key:
-    while (!(inb(0x64) & 1));
-    c = inb(0x60);
+    while (!this->kb.available());
+    c = this->kb.get();
     switch (c)
     {
         case 0x1d: // ctrl

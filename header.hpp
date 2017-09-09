@@ -18,6 +18,8 @@
 
 #define IDT_ENTRIES 256
 
+#define KEYBOARD_BUFFER_SIZE 256
+
 
 #ifdef DEBUG
 // # define DEBUG_GETCHAR
@@ -27,6 +29,8 @@
 // # define DEBUG_KHEAP
 # define DEBUG_IDT
 # define DEBUG_INTERRUPTS
+# define DEBUG_TIMER
+# define DEBUG_KBD
 #endif
 
 

@@ -14,6 +14,19 @@ public:
     u8 alt : 1;
 };
 
+class kbd_buf // keyboard events buffer
+{
+public:
+    kbd_buf() : index(0) {};
+    void put(u8 c) { if (index < KEYBOARD_BUFFER_SIZE - 1) buffer[index++] = c; };
+    u8 get() { return index ? buffer[--index] : 0; };
+    u8 available() { return !!index; }
+
+private:
+    u32 index;
+    u8 buffer[KEYBOARD_BUFFER_SIZE];
+};
+
 class terminal
 {
 public:
@@ -50,6 +63,7 @@ public:
 
     // input
     keypress getchar(void);
+    void kbd_ready_callback();
 
     // output
     void tputc_xy(char c, size_t x, size_t y);
@@ -76,6 +90,8 @@ private:
     u8 color;
     u8 def_color;
     u16 cursor;
+
+    kbd_buf kb;
 
     u8 shift : 1;
     u8 ctrl : 1;

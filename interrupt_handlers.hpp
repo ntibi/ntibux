@@ -33,6 +33,9 @@ extern "C" void pic_interrupt_handler(const int_registers ir);
 
 void add_interrupt_handler(u32 nbr, void (*handler)());
 
+void timer_handler();
+void keyboard_handler();
+
 extern "C" void isr_0(int_registers ir);
 extern "C" void isr_1(int_registers ir);
 extern "C" void isr_2(int_registers ir);
