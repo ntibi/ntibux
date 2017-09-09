@@ -70,15 +70,7 @@ void add_interrupt_handler(u32 nbr, void (*handler)())
 
 void timer_handler()
 {
-    static u32 counter = 0;
-
-#ifdef DEBUG_TIMER
-    term.save_pos();
-    term.tputc_xy(counter % 2 ? ' ' : 'T', 79, 0);
-    term.load_pos();
-    term.update_cursor();
-#endif
-    ++counter;
+    timer.tick();
 }
 
 void keyboard_handler()

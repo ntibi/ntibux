@@ -20,6 +20,9 @@
 
 #define KEYBOARD_BUFFER_SIZE 256
 
+#define CLOCK_FREQ 1000
+#define MS_INTERVAL (CLOCK_FREQ / 1000)
+
 
 #ifdef DEBUG
 // # define DEBUG_GETCHAR
@@ -27,7 +30,7 @@
 // # define DEBUG_READLINE
 // # define DEBUG_GDT
 // # define DEBUG_KHEAP
-# define DEBUG_IDT
+// # define DEBUG_IDT
 # define DEBUG_INTERRUPTS
 # define DEBUG_TIMER
 # define DEBUG_KBD
@@ -64,6 +67,7 @@
 #define LOG_KHEAP "%13gkheap%r: "
 #define LOG_GDT "%13ggdt%r: "
 #define LOG_IDT "%13gidt%r: "
+#define LOG_TIMER "%13gtimer%r: "
 
 
 typedef uint32_t u32;

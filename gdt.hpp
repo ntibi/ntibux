@@ -4,8 +4,6 @@
 #include "kernel.hpp"
 #include "terminal.hpp"
 
-class terminal;
-
 
 class GDT
 {
