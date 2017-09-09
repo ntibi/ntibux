@@ -6,6 +6,7 @@
 #include "kernel.hpp"
 #include "list.hpp"
 
+
 #define PAGE_PRESENT (1 << 0)
 #define PAGE_RO (0 << 1)
 #define PAGE_RW (1 << 1)
@@ -26,12 +27,16 @@ struct page // page table entry
 struct page_table
 {
     page pages[1024];
+
+    struct page_table *clone();
 };
 
 struct page_directory
 {
     page_table *tables[1024]; // vaddr
     u32 paddrs[1024]; // paddr | flags
+
+    struct page_directory *clone();
 };
 
 class frames
@@ -121,6 +126,11 @@ public:
     page_directory *current_pd;
 
     u32 total;
+
+    friend page;
+    friend page_table;
+    friend page_directory;
+
 
 private:
     void identity_map_kernel();

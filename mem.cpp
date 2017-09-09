@@ -24,6 +24,49 @@ void page::free(void)
     this->address = 0;
 }
 
+page_table *page_table::clone()
+{
+    page_table *out;
+
+    out = (page_table*)mem.kheap.alloc(sizeof(page_table), ALLOC_ALIGNED | ALLOC_ZEROED);
+
+    for (u32 i = 0; i < 1024; ++i)
+    {
+        if (this->pages[i].address)
+        {
+            mem.alloc_frame(&out->pages[i], this->pages[i].address & 0xfff);
+            memcpy((void*)(out->pages[i].address & ~0xfff), (void*)(this->pages[i].address & ~0xfff), 4096); // TODO: block interrupts
+        }
+    }
+
+    return out;
+}
+
+page_directory *page_directory::clone()
+{
+    page_directory *out;
+
+    out = (page_directory*)mem.kheap.alloc(sizeof(page_directory), ALLOC_ALIGNED | ALLOC_ZEROED);
+
+    for (u32 i = 0; i < 1024; ++i)
+    {
+        if (this->tables[i])
+        {
+            if (this->tables[i] == mem.kernel_pd->tables[i]) // share kernel code/data
+            {
+                out->tables[i] = this->tables[i];
+                out->paddrs[i] = this->paddrs[i];
+            }
+            else
+            {
+                out->tables[i] = this->tables[i]->clone();
+                out->paddrs[i] = mem.get_paddr((u32)out->tables[i]) | MAP_KERNEL_DATA;
+            }
+        }
+    }
+
+    return out;
+}
 
 class mem mem;
 

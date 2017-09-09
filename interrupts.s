@@ -1,6 +1,6 @@
-# mdr
 .intel_syntax noprefix
 
+.section .text
 # make all interrupt handlers converge to one common handler calling extern c interrupt_handler
 .macro isr_noerr nbr
     .global isr_\nbr

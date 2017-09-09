@@ -19,6 +19,7 @@ extern class GDT gdt;
 extern class mem mem;
 extern class IDT idt;
 extern class timer timer;
+extern class scheduler sched;
 extern class debug debug;
 
 extern u32 stack_top;

@@ -1,7 +1,7 @@
 NAME = ntibux
 
 
-OBJS = boot.o kernel.o misc.o kmisc.o terminal.o terminal_printk.o vga.o interpreter.o gdt.o mem.o list.o debug.o idt.o interrupt_handlers.o interrupts.o timer.o
+OBJS = boot.o kernel.o misc.o kmisc.o terminal.o terminal_printk.o vga.o interpreter.o gdt.o mem.o list.o debug.o idt.o interrupt_handlers.o interrupts.o timer.o scheduler.o
 
 I686_GCC_DIR = $(HOME)/opt/cross/bin/
 PATH := $(I686_GCC_DIR):$(PATH)

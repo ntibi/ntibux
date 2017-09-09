@@ -31,9 +31,10 @@
 // # define DEBUG_GDT
 // # define DEBUG_KHEAP
 // # define DEBUG_IDT
-# define DEBUG_INTERRUPTS
-# define DEBUG_TIMER
-# define DEBUG_KBD
+// # define DEBUG_INTERRUPTS
+// # define DEBUG_TIMER
+// # define DEBUG_KBD
+# define DEBUG_SCHED
 #endif
 
 
@@ -68,6 +69,7 @@
 #define LOG_GDT "%13ggdt%r: "
 #define LOG_IDT "%13gidt%r: "
 #define LOG_TIMER "%13gtimer%r: "
+#define LOG_SCHED "%13gsched%r: "
 
 
 typedef uint32_t u32;
