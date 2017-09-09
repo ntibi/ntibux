@@ -3,7 +3,7 @@
 u32 interrupts_counter[256] = {0};
 u32 pic_interrupts_counter[16] = {0};
 
-void (*pic_irq_handler[16])();
+void (*pic_int_handler[16])();
 
 void enable_interrupts()
 {
@@ -51,8 +51,8 @@ void pic_interrupt_handler(const int_registers int_regs)
         term.printk(KERN_DEBUG "PIC int %d\n", int_regs.pic_int_nbr);
 #endif
 
-    if (pic_irq_handler[int_regs.pic_int_nbr])
-        pic_irq_handler[int_regs.pic_int_nbr]();
+    if (pic_int_handler[int_regs.pic_int_nbr])
+        pic_int_handler[int_regs.pic_int_nbr]();
 
     if (int_regs.pic_int_nbr >= 8)
         outb(PIC2_CMD, PIC_EOI);
@@ -62,3 +62,7 @@ void pic_interrupt_handler(const int_registers int_regs)
     pic_interrupts_counter[int_regs.pic_int_nbr]++;
 }
 
+void add_interrupt_handler(u32 nbr, void (*handler)())
+{
+    pic_int_handler[nbr] = handler;
+}
