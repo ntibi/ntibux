@@ -35,7 +35,7 @@ page_table *page_table::clone()
         if (this->pages[i].address)
         {
             mem.alloc_frame(&out->pages[i], this->pages[i].address & 0xfff);
-            memcpy((void*)(out->pages[i].address & ~0xfff), (void*)(this->pages[i].address & ~0xfff), 4096); // TODO: block interrupts
+            copy_page(out->pages[i].address & ~0xfff, this->pages[i].address & ~0xfff);
         }
     }
 
@@ -205,6 +205,11 @@ void mem::enable_paging()
             "or eax, 0x80000000;"
             "mov cr0, eax;"
             );
+}
+
+void mem::load_page_directory()
+{
+    this->current_pd = this->kernel_pd;
 }
 
 void mem::load_page_directory(struct page_directory *pd)

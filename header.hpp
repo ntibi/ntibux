@@ -11,8 +11,9 @@
 
 // #define USE_HW_CURSOR // doesn't support term.set_cursor()
 
-#define GDT_ENTRIES_ADDRESS 0x800
 #define PAGESIZE 4096
+
+#define GDT_ENTRIES_ADDRESS 0x800
 
 #define MAX_LINE_LEN 1024
 
@@ -22,6 +23,8 @@
 
 #define CLOCK_FREQ 1000
 #define MS_INTERVAL (CLOCK_FREQ / 1000)
+
+#define KERNEL_STACK_SIZE 16384
 
 
 #ifdef DEBUG

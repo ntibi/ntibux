@@ -7,6 +7,8 @@
 #include "list.hpp"
 
 
+extern "C" void copy_page(u32 dst, u32 src);
+
 #define PAGE_PRESENT (1 << 0)
 #define PAGE_RO (0 << 1)
 #define PAGE_RW (1 << 1)
@@ -56,7 +58,7 @@ private:
 #define ALLOC_ALIGNED (1 << 0)
 #define ALLOC_ZEROED (1 << 1)
 class kheap
-{
+{ // TODO: handle pages subdivision for small allocations
 public:
     kheap();
     void *unpaged_alloc(u32 size);
@@ -112,6 +114,7 @@ public:
     page *get_page(u32 address);
     void enable_paging();
     void load_page_directory(struct page_directory *pd); // change pd used by mapping functions
+    void load_page_directory();                          // reset to kernel pd
     void switch_page_directory();                        // switch cr3 loaded pd by the loaded pd
     void invalidate_page(u32 page_addr);
     u32 map(u32 vaddr, u32 flags);
