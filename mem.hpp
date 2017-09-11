@@ -70,7 +70,7 @@ public:
     void free(void *addr, u32 size);
 
     void init(u32 reserve);
-    void double_reserve(); // double reserve
+    void double_reserve(); // TODO: propagate to all tasks
 
     void enable_paging(); // call before activating paging
 
@@ -101,17 +101,17 @@ private:
 #define MAP_RW          (1 << 1)
 #define MAP_KERN        (0 << 2)
 #define MAP_USER        (1 << 2)
-#define MAP_KERNEL_CODE (MAP_KERN | MAP_RO)
-#define MAP_KERNEL_DATA (MAP_KERN | MAP_RW)
-#define MAP_USER_CODE   (MAP_USER | MAP_RO)
-#define MAP_USER_DATA   (MAP_USER | MAP_RW)
+#define MAP_KERNEL_CODE (1 | MAP_KERN | MAP_RO)
+#define MAP_KERNEL_DATA (1 | MAP_KERN | MAP_RW)
+#define MAP_USER_CODE   (1 | MAP_USER | MAP_RO)
+#define MAP_USER_DATA   (1 | MAP_USER | MAP_RW)
 class mem
 { // TODO: write and use TLB flushing functions (invlpg instruction)
 public:
     mem();
     void init(u32 high_mem);
     class kheap kheap;
-    page *get_page(u32 address);
+    page *get_page(u32 address); // TODO: use flags
     void enable_paging();
     void load_page_directory(struct page_directory *pd); // change pd used by mapping functions
     void load_page_directory();                          // reset to kernel pd
@@ -127,6 +127,7 @@ public:
     void dump();
 
     page_directory *current_pd;
+    page_directory *kernel_pd;
 
     u32 total;
 
@@ -144,8 +145,6 @@ private:
     u32 get_paddr(u32 vaddr);
 
     class frames frames;
-
-    page_directory *kernel_pd;
     bool paging_enabled;
 };
 

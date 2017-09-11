@@ -60,7 +60,7 @@ page_directory *page_directory::clone()
             else
             {
                 out->tables[i] = this->tables[i]->clone();
-                out->paddrs[i] = mem.get_paddr((u32)out->tables[i]) | MAP_KERNEL_DATA;
+                out->paddrs[i] = mem.get_paddr((u32)out->tables[i]) | 0x7; // TODO: copy flags too
             }
         }
     }
@@ -222,7 +222,7 @@ void mem::switch_page_directory()
 #ifdef DEBUG_MM
     term.printk(KERN_DEBUG LOG_MM "switching page directory\n");
 #endif
-    asm volatile ("mov cr3, %0;" :: "r"(this->current_pd->paddrs));
+    asm volatile ("mov cr3, %0;" :: "r"(this->get_paddr((u32)this->current_pd->paddrs)));
 }
 
 void mem::invalidate_page(u32 page_addr)
