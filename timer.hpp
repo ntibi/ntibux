@@ -20,7 +20,7 @@ public:
     void init();
     void dump();
 
-    u32 ticks; // TODO: extend ticks capacity (linker trick ? struct union ? subclass with getters/setters ?)
+    u64 ticks;
 };
 
 #endif
