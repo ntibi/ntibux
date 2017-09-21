@@ -35,14 +35,18 @@ void add_interrupt_handler(u32 nbr, void (*handler)(const int_registers*));
 void add_pic_interrupt_handler(u32 nbr, void (*handler)(const int_registers*));
 
 
+void set_interrupts_handlers();
+
 #define PIC_TIMER 0
 #define PIC_KBD 1
 
+#define INT_GPF 13
 #define INT_PAGE_FAULT 14
 
 void timer_handler(const int_registers*);
 void keyboard_handler(const int_registers*);
 
+void general_protection_fault_handler(const int_registers *ir);
 void page_fault_handler(const int_registers *ir);
 
 extern "C" void isr_0(int_registers ir);

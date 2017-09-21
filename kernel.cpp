@@ -62,6 +62,8 @@ extern "C" void kernel_main(struct multiboot_info *mboot, u32 magic)
     idt.init();
     timer.init();
     sched.init();
+    set_interrupts_handlers();
+
     enable_interrupts();
 
     shell();

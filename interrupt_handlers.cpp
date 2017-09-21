@@ -91,6 +91,12 @@ void add_pic_interrupt_handler(u32 nbr, void (*handler)(const int_registers*))
 }
 
 
+void set_interrupts_handlers()
+{
+    add_interrupt_handler(INT_GPF, general_protection_fault_handler);
+}
+
+
 void timer_handler(const int_registers *ir)
 {
     timer.tick();
@@ -116,4 +122,10 @@ void page_fault_handler(const int_registers *ir)
             ir->err_code & 0x10 ? 'i' : '-'  // caused by instruction (NX enabled)
             );
     PANIC("page fault");
+}
+
+void general_protection_fault_handler(const int_registers *ir)
+{
+    term.printk(KERN_EMERG "general protection fault @ eip: 0x%x\n", ir->eip);
+    PANIC("GPF");
 }
