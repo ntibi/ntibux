@@ -10,10 +10,10 @@
 #define LIST_HEAD(head, member, type) LIST_ENTRY(head.next, member, type)
 #define LIST_TAIL(head, member, type) LIST_ENTRY(head.prev, member, type)
 
-#define LIST_FOREACH(elt, head) for ((elt) = (head)->next; (elt) != (head); (elt) = (elt)->next)
-#define LIST_FOREACH_SAFE(elt, tmp, head) for ((elt) = (head)->next, (tmp) = (elt)->next; (elt) != (head); (elt) = (tmp), (tmp) = (elt)->next)
+#define LIST_FOREACH(it, head) for ((it) = (head)->next; (it) != (head); (it) = (it)->next)
+#define LIST_FOREACH_SAFE(it, tmp, head) for ((it) = (head)->next, (tmp) = (it)->next; (it) != (head); (it) = (tmp), (tmp) = (it)->next)
 
-#define LIST_FOREACH_ENTRY(elt, head, member) for (elt = LIST_ENTRY((head)->next, member, typeof(*elt)); &elt->member != (head); elt = LIST_ENTRY(elt->member.next,member, typeof(*elt)))
+#define LIST_FOREACH_ENTRY(it, head, member) for (it = LIST_ENTRY((head)->next, member, typeof(*(it))); &it->member != (head); it = LIST_ENTRY(it->member.next,member, typeof(*(it))))
 
 
 class list
@@ -29,6 +29,8 @@ public:
     void pop_back();
     size_t size();
     int empty();
+    int singular();
+    void rotate();
 // elt functions:
     void del();
 };

@@ -23,8 +23,8 @@ void debug::trace()
     size_t frame = 0;
     u32 ebp, eip;
 
-    asm volatile ( "mov %0, ebp" : "=a"(stack) );
-    while (stack && stack < &stack_top)
+    asm volatile ("mov %0, ebp" : "=a"(stack));
+    while (stack) // TODO: avoid overflow without relying on &stack_top
     {
         ebp = stack[0];
         eip = stack[1];

@@ -27,7 +27,7 @@ void timer::set_freq(u32 hz)
 void timer::init()
 {
     set_freq(CLOCK_FREQ);
-    add_interrupt_handler(0, timer_handler);
+    add_pic_interrupt_handler(PIC_TIMER, timer_handler);
 }
 
 void timer::dump()

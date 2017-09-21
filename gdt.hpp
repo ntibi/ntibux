@@ -5,21 +5,43 @@
 #include "terminal.hpp"
 
 
+struct tss
+{
+    tss() : back_link(0), esp0(0), ss0(0), esp1(0), ss1(0), esp2(0), ss2(0), cr3(0), eip(0), eflags(0), eax(0),ecx(0),edx(0),ebx(0), esp(0), ebp(0), esi(0), edi(0), es(0), cs(0), ss(0), ds(0), fs(0), gs(0), ldt(0), bitmap(0) { };
+
+    u32 back_link;
+    u32 esp0, ss0;
+    u32 esp1, ss1;
+    u32 esp2, ss2;
+    u32 cr3;
+    u32 eip;
+    u32 eflags;
+    u32 eax,ecx,edx,ebx;
+    u32 esp, ebp;
+    u32 esi, edi;
+    u32 es, cs, ss, ds, fs, gs;
+    u32 ldt;
+    u32 bitmap;
+} __attribute__((packed));
+
 class GDT
 {
 public:
    GDT();
    void init(void);
+   void load_task_register();
 
    struct header
    {
        u16 size;
        void *offset;
    } __attribute__((packed));
+
    struct entry;
    struct flags;
    struct access;
 
+   struct tss tss; // TODO: make sure the tss is not spanned accross two pages
 
 private:
    void load_gdt();
@@ -29,7 +51,6 @@ private:
    struct entry *gdt_entries;
    u8 gdt_entries_size;
 };
-
 
 struct GDT::entry
 {

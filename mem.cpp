@@ -87,6 +87,8 @@ void mem::init(u32 high_mem)
     this->switch_page_directory();
     this->enable_paging();
     this->paging_enabled = true;
+
+    add_interrupt_handler(INT_PAGE_FAULT, page_fault_handler);
 }
 
 void mem::identity_map_kernel()

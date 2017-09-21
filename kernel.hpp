@@ -12,6 +12,7 @@
 #include "debug.hpp"
 #include "idt.hpp"
 #include "timer.hpp"
+#include "scheduler.hpp"
 
 
 extern class terminal term;

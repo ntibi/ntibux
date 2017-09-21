@@ -31,6 +31,7 @@ u32 atoi(const char *s, u32 base); // call without a base prefix (e.g. "cafebabe
 // kmisc:
 void panic(const char fn[], u32 line, const char msg[]);
 #define PANIC(msg) panic(__FILE__, __LINE__, msg)
+#define UNREACHABLE PANIC("unreachable code reached")
 
 inline void outb(u16 port, u8 val)
 {

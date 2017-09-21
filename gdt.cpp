@@ -37,6 +37,8 @@ void GDT::init(void)
     this->set_gate(4, 0, 0xFFFFFFFF, GDT::access(GDT::access::USER   | GDT::access::CODE | GDT::access::READABLE_CODE  | GDT::access::NON_CONFORMING).raw, flags.raw); // user code
     this->set_gate(5, 0, 0xFFFFFFFF, GDT::access(GDT::access::USER   | GDT::access::DATA | GDT::access::WRITEABLE_DATA | GDT::access::GROWS_UP      ).raw, flags.raw); // user data
     this->set_gate(6, 0, 0xFFFFFFFF, GDT::access(GDT::access::USER   | GDT::access::DATA | GDT::access::WRITEABLE_DATA | GDT::access::GROWS_DOWN    ).raw, flags.raw); // user stack
+    // this->set_gate(7, (u32)&this->tss, sizeof(this->tss), GDT::access(GDT::access::CODE).raw, flags.raw);
+    this->set_gate(7, (u32)&this->tss, sizeof(this->tss), 0x89, flags.raw); // TSS TODO: use real flags
     this->gdt_ptr.size = (sizeof(GDT::entry) * this->gdt_entries_size) - 1;
     this->gdt_ptr.offset = this->gdt_entries;
     this->load_gdt();
@@ -57,4 +59,9 @@ void GDT::load_gdt(void)
 #ifdef DEBUG_GDT
     term.printk(KERN_DEBUG LOG_GDT "GDT loaded\n");
 #endif
+}
+
+void GDT::load_task_register()
+{
+    asm volatile ("ltr ax" :: "a" (&this->tss));
 }

@@ -24,7 +24,7 @@
     pic_isr_\nbr:
     cli
     push \nbr # err_code = real interrupt number
-    push \nbr + 32 // irq [0-15] are mapped to [32-47]
+    push \nbr + 32 # irq [0-15] are mapped to [32-47]
     jmp pic_interrupt_common_handler
 .endm
  
@@ -84,7 +84,7 @@ interrupt_common_handler:
     mov ax, ds
     push eax
 
-    mov ax, 0x10 // kernel data selector (gdt[2])
+    mov ax, 0x10 # kernel data selector (gdt[2])
     mov ds, ax
     mov es, ax
     mov fs, ax
@@ -92,7 +92,7 @@ interrupt_common_handler:
 
     call interrupt_handler
 
-    pop eax // pop ds
+    pop eax # pop ds
     mov ds, ax
     mov es, ax
     mov fs, ax
@@ -111,7 +111,7 @@ pic_interrupt_common_handler:
     mov ax, ds
     push eax
 
-    mov ax, 0x10 // kernel data selector (gdt[2])
+    mov ax, 0x10 # kernel data selector (gdt[2])
     mov ds, ax
     mov es, ax
     mov fs, ax
@@ -119,7 +119,7 @@ pic_interrupt_common_handler:
 
     call pic_interrupt_handler
 
-    pop eax // pop ds
+    pop eax # pop ds
     mov ds, ax
     mov es, ax
     mov fs, ax

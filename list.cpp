@@ -70,3 +70,23 @@ int list::empty()
 {
     return this == this->next;
 }
+
+int list::singular()
+{
+    return !this->empty() && this->next == this->prev;
+}
+
+void list::rotate()
+{
+    if (empty() || singular())
+        return ;
+    list *first;
+
+    first = this->next;
+    first->next->prev = this;
+    this->prev->next = first;
+    this->next = first->next;
+    first->next = this;
+    first->prev = this->prev;
+    this->prev = first;
+}

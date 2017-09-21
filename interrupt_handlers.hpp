@@ -18,12 +18,12 @@ struct int_registers // stack state when handling interrupt
     union
     {
     u32 err_code;
-    u32 pic_int_nbr;
+    u32 pic_int_nbr; // we push real int nbr in pic handler
     };
     u32 eip, cs, eflags, useresp, ss; // pushed by the interrupt
 };
 
-void enable_interrupts();
+void enable_interrupts(); // TODO: use a semaphore to enable/disable interrupts (inc_interrupts,dec_interrupts)
 void disable_interrupts();
 
 void dump_int_summary();
@@ -31,10 +31,19 @@ void dump_int_summary();
 extern "C" void interrupt_handler(const int_registers ir);
 extern "C" void pic_interrupt_handler(const int_registers ir);
 
-void add_interrupt_handler(u32 nbr, void (*handler)());
+void add_interrupt_handler(u32 nbr, void (*handler)(const int_registers*));
+void add_pic_interrupt_handler(u32 nbr, void (*handler)(const int_registers*));
 
-void timer_handler();
-void keyboard_handler();
+
+#define PIC_TIMER 0
+#define PIC_KBD 1
+
+#define INT_PAGE_FAULT 14
+
+void timer_handler(const int_registers*);
+void keyboard_handler(const int_registers*);
+
+void page_fault_handler(const int_registers *ir);
 
 extern "C" void isr_0(int_registers ir);
 extern "C" void isr_1(int_registers ir);

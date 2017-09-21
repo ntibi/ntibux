@@ -1,10 +1,9 @@
 #ifndef MEM_HPP
 # define MEM_HPP
 
+#include "kernel.hpp"
 #include "multiboot.h"
 #include "header.hpp"
-#include "kernel.hpp"
-#include "list.hpp"
 
 
 extern "C" void copy_page(u32 dst, u32 src);

@@ -21,8 +21,10 @@
 
 #define KEYBOARD_BUFFER_SIZE 256
 
-#define CLOCK_FREQ 1000
+#define CLOCK_FREQ 1000 // TODO: benchmark avg process switch time and set CLOCK_FREQ accordingly
 #define MS_INTERVAL (CLOCK_FREQ / 1000)
+#define MIN_TIMESLICE 1 // * MS_INTERVAL
+#define MAX_TIMESLICE 100 // * MS_INTERCAL
 
 #define KERNEL_STACK_SIZE 16384
 
