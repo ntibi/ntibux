@@ -70,6 +70,11 @@ task *scheduler::new_task(const char *name, void (*entry)())
     return new_task;
 }
 
+task *scheduler::new_task(void (*entry)())
+{
+    return new_task("", entry);
+}
+
 void scheduler::yield()
 {
     task *old;
@@ -113,4 +118,16 @@ void scheduler::kill_current_task()
 void kill_me()
 {
     sched.kill_current_task();
+}
+
+void scheduler::dump()
+{
+    task *it;
+
+    disable_interrupts();
+    LIST_FOREACH_ENTRY(it, &this->tasks, tasks)
+    {
+        term.printk("%u: %s\n", it->id, it->name);
+    }
+    enable_interrupts();
 }

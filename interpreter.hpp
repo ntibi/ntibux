@@ -44,6 +44,7 @@ private:
     int command_x(char **args);
     int command_int(char **args);
     int command_time(char **args);
+    int command_sched(char **args);
 };
 
 #endif

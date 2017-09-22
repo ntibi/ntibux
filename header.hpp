@@ -41,7 +41,7 @@
 // # define DEBUG_INTERRUPTS
 // # define DEBUG_TIMER
 // # define DEBUG_KBD
-# define DEBUG_SCHED
+// # define DEBUG_SCHED
 #endif
 
 /* === THE END === */

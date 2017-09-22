@@ -38,9 +38,11 @@ class scheduler
 { // TODO replace sti/cli by more complete locks
 public:
     void init();
+    task *new_task(void (*entry)());
     task *new_task(const char *name, void (*entry)());
     void yield();
     void kill_current_task();
+    void dump();
 
 private:
     u32 next_id = 1;
