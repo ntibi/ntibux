@@ -112,8 +112,8 @@ size_t terminal::vprintk(const char *format, va_list params)
                     else
                         w += this->tputs_noup(va_arg(params, char*));
                     break;
-                case 'U': // get 8bytes int 4bytes by 4
-                    w += this->putuint_b(((u64)va_arg(params, unsigned int)) + ((u64)va_arg(params, unsigned int) << 32), 10, param);
+                case 'U':
+                    w += this->putuint_b(va_arg(params, unsigned long long), 10, param);
                     break;
                 case 'u':
                     w += this->putuint_b(va_arg(params, unsigned int), 10, param);

@@ -131,7 +131,7 @@ void scheduler::dump()
     disable_interrupts();
     LIST_FOREACH_ENTRY(it, &this->tasks, tasks)
     {
-        term.printk("%u %s\n", it->id, it->name);
+        term.printk("%u %s: %U\n", it->id, it->name, it->created);
     }
     enable_interrupts();
 }

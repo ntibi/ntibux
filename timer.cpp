@@ -32,5 +32,5 @@ void timer::init()
 
 void timer::dump()
 {
-    term.printk("elapsed time %u seconds (%U ticks)\n", this->ticks / CLOCK_FREQ, this->ticks);
+    term.printk("elapsed time %U seconds (%U ticks)\n", this->ticks / CLOCK_FREQ, this->ticks);
 }
