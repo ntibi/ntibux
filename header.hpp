@@ -28,6 +28,8 @@
 
 #define KERNEL_STACK_SIZE 16384
 
+#define TASK_NAME_LEN 32
+
 
 #ifdef DEBUG
 // # define DEBUG_GETCHAR

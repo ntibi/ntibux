@@ -24,16 +24,21 @@ public:
 
     struct page_directory *pd;
 
+    char name[TASK_NAME_LEN];
+
     list tasks;
 
-    void kill();
+    void init(u32 id, u32 entry, page_directory *pd);
+    void init(const char *name, u32 id, u32 entry, page_directory *pd);
+    void set_name(const char *name);
+    void kill(); // TODO: free pd
 };
 
 class scheduler
 { // TODO replace sti/cli by more complete locks
 public:
     void init();
-    task *new_task(void (*entry)());
+    task *new_task(const char *name, void (*entry)());
     void yield();
     void kill_current_task();
 
