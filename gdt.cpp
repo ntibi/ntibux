@@ -53,8 +53,8 @@ void GDT::load_gdt(void)
                     "mov fs, ax;"
                     "mov gs, ax;"
                     "mov ss, ax;"
-                    "jmp 0x8:flush;" // 0x8 <- code selector (gdt[1])
-                    "flush:"
+                    "jmp 0x8:1f;" // 0x8 <- code selector (gdt[1])
+                    "1:"
                     :: "r"(&this->gdt_ptr));
 #ifdef DEBUG_GDT
     term.printk(KERN_DEBUG LOG_GDT "GDT loaded\n");
