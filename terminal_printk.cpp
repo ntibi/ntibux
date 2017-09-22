@@ -18,15 +18,16 @@ size_t terminal::putint_b(int nbr, unsigned int base, int padding)
     return w + this->putuint_b(nnbr, base, padding);
 }
 
-size_t terminal::putuint_b(unsigned int nbr, unsigned int base, int padding)
+template <typename T>
+size_t terminal::putuint_b(T nbr, unsigned int base, int padding)
 {
-    unsigned int tmp;
-    unsigned int l;
+    T tmp;
+    T l;
     size_t w = 0;
 
     tmp = nbr;
     l = 1;
-    while (tmp >= base)
+    while (tmp >= (T)base)
     {
         tmp /= base;
         l *= base;
@@ -111,6 +112,9 @@ size_t terminal::vprintk(const char *format, va_list params)
                     else
                         w += this->tputs_noup(va_arg(params, char*));
                     break;
+                case 'U': // 64bit variables get the val 4 bytes by 4
+                    w += this->putuint_b(((u64)va_arg(params, unsigned int) << 32) + va_arg(params, unsigned int), 10, param);
+                    break;
                 case 'u':
                     w += this->putuint_b(va_arg(params, unsigned int), 10, param);
                     break;
@@ -125,10 +129,10 @@ size_t terminal::vprintk(const char *format, va_list params)
                     w += this->putuint_b(va_arg(params, unsigned int), 16, param);
                     break;
                 case 'b':
-                    w += this->putuint_b(va_arg(params, int), 2, param);
+                    w += this->putuint_b(va_arg(params, unsigned int), 2, param);
                     break;
                 case 'c':
-                    this->tputc_noup(va_arg(params, int));
+                    this->tputc_noup(va_arg(params, unsigned int));
                     ++w;
                     break;
                 case 'g': // set fg color

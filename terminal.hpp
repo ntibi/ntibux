@@ -112,8 +112,9 @@ private:
     char get_scancode(void);
     void update_vga_buffer(void);
 
-    size_t putuint_b(unsigned int nbr, unsigned int base, int padding); // NO VGA UPDATE
-    size_t putint_b(int nbr, unsigned int base, int padding);           // !!!
+    template <typename T>
+    size_t putuint_b(T nbr, unsigned int base, int padding);  // NO VGA UPDATE
+    size_t putint_b(int nbr, unsigned int base, int padding); // !!!
 
     int check_binds(keypress k);
 };

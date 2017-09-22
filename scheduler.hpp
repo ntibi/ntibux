@@ -22,6 +22,9 @@ public:
     u32 id;
     u32 esp;
 
+    u64 created;
+    u64 elapsed;
+
     struct page_directory *pd;
 
     char name[TASK_NAME_LEN];

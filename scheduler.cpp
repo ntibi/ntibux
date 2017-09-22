@@ -21,6 +21,8 @@ void task::init(u32 id, u32 entry, page_directory *pd)
      * ...
      */
     this->pd = pd;
+    this->elapsed = 0;
+    this->created = timer.ticks;
 }
 
 void task::init(const char *name, u32 id, u32 entry, page_directory *pd)
@@ -94,6 +96,8 @@ void scheduler::yield()
 
     this->current = next;
 
+    old->elapsed++;
+
     context_switch(&old->esp, next->esp);
 }
 
@@ -127,7 +131,7 @@ void scheduler::dump()
     disable_interrupts();
     LIST_FOREACH_ENTRY(it, &this->tasks, tasks)
     {
-        term.printk("%u: %s\n", it->id, it->name);
+        term.printk("%u %s\n", it->id, it->name);
     }
     enable_interrupts();
 }
