@@ -336,8 +336,8 @@ int interpreter::command_sched(char **args)
     }
     else
     {
-        term.printk("unknown subcommand %s\n", args[1]);
-        goto usage;
+        u32 id = atoi(args[1]);
+        sched.dump(id);
     }
     return 0;
 

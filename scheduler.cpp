@@ -82,6 +82,8 @@ void scheduler::yield()
     task *old;
     task *next;
 
+    this->current->elapsed++;
+
     if (!this->current || this->tasks.singular())
         return ;
 
@@ -95,8 +97,6 @@ void scheduler::yield()
     mem.switch_page_directory();
 
     this->current = next;
-
-    old->elapsed++;
 
     context_switch(&old->esp, next->esp);
 }
@@ -124,6 +124,26 @@ void kill_me()
     sched.kill_current_task();
 }
 
+void scheduler::dump(u32 id)
+{
+    task *it;
+
+    disable_interrupts();
+    LIST_FOREACH_ENTRY(it, &this->tasks, tasks)
+    {
+        if (it-> id == id)
+        {
+            term.printk("%8g%s%g(%u)\n", it->name, it->id);
+            term.printk("esp: 0x%x\n", it->esp);
+            term.printk("pd: 0x%x\n", it->pd);
+            term.printk("created: %U\n", it->created);
+            term.printk("elapsed: %U\n", it->elapsed);
+            break ;
+        }
+    }
+    enable_interrupts();
+}
+
 void scheduler::dump()
 {
     task *it;
@@ -131,7 +151,7 @@ void scheduler::dump()
     disable_interrupts();
     LIST_FOREACH_ENTRY(it, &this->tasks, tasks)
     {
-        term.printk("%u %s: %U\n", it->id, it->name, it->created);
+        term.printk("%u %s: %U\n", it->id, it->name, it->elapsed);
     }
     enable_interrupts();
 }

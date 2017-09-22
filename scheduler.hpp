@@ -46,6 +46,7 @@ public:
     void yield();
     void kill_current_task();
     void dump();
+    void dump(u32 id);
 
 private:
     u32 next_id = 1;
