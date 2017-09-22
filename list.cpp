@@ -80,6 +80,7 @@ void list::rotate()
 {
     if (empty() || singular())
         return ;
+
     list *first;
 
     first = this->next;

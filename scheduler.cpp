@@ -3,6 +3,10 @@
 
 class scheduler sched;
 
+void task::kill()
+{
+    this->tasks.del();
+}
 
 void scheduler::init()
 {
@@ -10,13 +14,12 @@ void scheduler::init()
 
     kernel = (task*)mem.kheap.alloc(sizeof(task), ALLOC_ZEROED);
     kernel->id = this->next_id++;
-    // kernel->regs.* will be set on first task_switching
     kernel->pd = mem.kernel_pd;
 
     this->tasks.init_head();
     this->tasks.push(&kernel->tasks);
 #ifdef DEBUG_SCHED
-    term.printk(KERN_DEBUG LOG_SCHED "main task %d\n", kernel->id);
+    term.printk(KERN_DEBUG LOG_SCHED "new task (%u)\n", kernel->id);
 #endif
     this->current = kernel;
 }
@@ -31,23 +34,30 @@ task *scheduler::new_task(void (*entry)())
     new_task->id = this->next_id++;
 
     new_task->esp = (u32)mem.kheap.alloc(KERNEL_STACK_SIZE, ALLOC_ALIGNED) + KERNEL_STACK_SIZE; // start at the end of the stack
-    memset((u32*)new_task->esp - sizeof(u32) * 10, 0, sizeof(u32) * 10);
-    *(u32*)(new_task->esp - sizeof(u32)) = (u32)entry;
-    new_task->esp -= sizeof(u32) * 10; // flags + 8 regs + eip
+    memset((u32*)new_task->esp - sizeof(u32) * 11, 0, sizeof(u32) * 11);
+    *(u32*)(new_task->esp - sizeof(u32) * 1) = (u32)kill_me;
+    *(u32*)(new_task->esp - sizeof(u32) * 2) = (u32)entry;
+    new_task->esp -= sizeof(u32) * 11; // flags + 8 regs + eip
+    /* new_task stack state:
+     * &kill_me()
+     * entry_point
+     * 9 * 0 for the first popa, popf
+     * ...
+     */
 
     new_task->pd = mem.kernel_pd->clone();
 
     this->tasks.push_back(&new_task->tasks);
 
 #ifdef DEBUG_SCHED
-    term.printk(KERN_DEBUG LOG_SCHED "new task %d\n", new_task->id);
+    term.printk(KERN_DEBUG LOG_SCHED "new task (%u)\n", new_task->id);
 #endif
 
     enable_interrupts();
     return new_task;
 }
 
-void scheduler::yield(int_registers const *ir)
+void scheduler::yield()
 {
     task *old;
     task *next;
@@ -67,4 +77,27 @@ void scheduler::yield(int_registers const *ir)
     this->current = next;
 
     context_switch(&old->esp, next->esp);
+}
+
+void scheduler::kill_current_task()
+{
+    u32 trash;
+
+    disable_interrupts();
+#ifdef DEBUG_SCHED
+    term.printk(KERN_DEBUG LOG_SCHED "task %u killed\n", current->id);
+#endif
+    current->kill();
+    mem.kheap.free(current, sizeof(task));
+    current = LIST_HEAD(this->tasks, tasks, struct task);
+
+    mem.load_page_directory(current->pd);
+    mem.switch_page_directory();
+
+    context_switch(&trash, this->current->esp);
+}
+
+void kill_me()
+{
+    sched.kill_current_task();
 }

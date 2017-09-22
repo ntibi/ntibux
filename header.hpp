@@ -42,12 +42,8 @@
 # define DEBUG_SCHED
 #endif
 
-
-
-
-
-
 /* === THE END === */
+
 
 #define LOG_HDR "\1"
 #define KERN_EMERG   LOG_HDR "0" // Used for emergency messages, usually those that precede a crash.

@@ -100,7 +100,7 @@ void set_interrupts_handlers()
 void timer_handler(const int_registers *ir)
 {
     timer.tick();
-    sched.yield(ir);
+    sched.yield();
 }
 
 void keyboard_handler(const int_registers *ir)

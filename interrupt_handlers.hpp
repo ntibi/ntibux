@@ -23,7 +23,7 @@ struct int_registers // stack state when handling interrupt
     u32 eip, cs, eflags, useresp, ss; // pushed by the interrupt
 };
 
-void enable_interrupts(); // TODO: use a semaphore to enable/disable interrupts (inc_interrupts,dec_interrupts)
+void enable_interrupts();
 void disable_interrupts();
 
 void dump_int_summary();

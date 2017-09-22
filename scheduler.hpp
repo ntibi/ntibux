@@ -21,25 +21,31 @@ class task
 public:
     u32 id;
     u32 esp;
+
     struct page_directory *pd;
 
     list tasks;
+
+    void kill();
 };
 
 class scheduler
-{
+{ // TODO replace sti/cli by more complete locks
 public:
     void init();
     task *new_task(void (*entry)());
-    void yield(int_registers const *ir);
+    void yield();
+    void kill_current_task();
 
 private:
     u32 next_id = 1;
 
-    volatile task *current = 0;
+    task *current = NULL;
 
     list tasks;
 };
+
+void kill_me();
 
 extern "C" void context_switch(u32 *old_esp, u32 new_esp) __attribute__((fastcall));
 
