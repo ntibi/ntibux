@@ -130,9 +130,9 @@ public:
 
     u32 total;
 
-    friend page;
-    friend page_table;
-    friend page_directory;
+    friend struct page;
+    friend struct page_table;
+    friend struct page_directory;
 
 
 private:

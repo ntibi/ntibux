@@ -42,6 +42,8 @@ void scheduler::init()
 {
     task *kernel;
 
+    this->next_id = 0;
+
     kernel = (task*)mem.kheap.alloc(sizeof(task), ALLOC_ZEROED);
     kernel->init("kernel", this->next_id++, 0, mem.kernel_pd);
 

@@ -49,9 +49,9 @@ public:
     void dump(u32 id);
 
 private:
-    u32 next_id = 1;
+    u32 next_id;
 
-    task *current = NULL;
+    task *current;
 
     list tasks;
 };
