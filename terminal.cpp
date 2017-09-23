@@ -59,7 +59,7 @@ u8 kbd_buf::get()
     return out;
 }
 
-u8 kbd_buf::available()
+u32 kbd_buf::available()
 {
     return rindex != windex;
 }

@@ -20,10 +20,10 @@ public:
     kbd_buf() : rindex(0), windex(0) { };
     void put(u8 c);
     u8 get();
-    u8 available();
+    u32 available();
 
 private:
-    u32 rindex, windex;
+    volatile u32 rindex, windex;
     u8 buffer[KEYBOARD_BUFFER_SIZE];
 };
 
