@@ -15,15 +15,15 @@ public:
 };
 
 class kbd_buf // keyboard events buffer
-{
+{ // TODO: lock
 public:
-    kbd_buf() : index(0) {};
-    void put(u8 c) { if (index < KEYBOARD_BUFFER_SIZE - 1) buffer[index++] = c; };
-    u8 get() { return index ? buffer[--index] : 0; };
-    u8 available() { return !!index; }
+    kbd_buf() : rindex(0), windex(0) { };
+    void put(u8 c);
+    u8 get();
+    u8 available();
 
 private:
-    u32 index;
+    u32 rindex, windex;
     u8 buffer[KEYBOARD_BUFFER_SIZE];
 };
 

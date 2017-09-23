@@ -45,6 +45,25 @@ unsigned char terminal::uppercase[128] = {
 0, 0, 0, 0,
 };
 
+void kbd_buf::put(u8 c)
+{
+    buffer[windex] = c;
+    windex = (windex + 1) % KEYBOARD_BUFFER_SIZE;
+}
+
+u8 kbd_buf::get()
+{
+    u8 out = buffer[rindex];
+
+    rindex = (rindex + 1) % KEYBOARD_BUFFER_SIZE;
+    return out;
+}
+
+u8 kbd_buf::available()
+{
+    return rindex != windex;
+}
+
 char terminal::klog[8][20] = {
     "%4G%0g[EMRG]%r ",
     "%4g[ALT]%r ",
