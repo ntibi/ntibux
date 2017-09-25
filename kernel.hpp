@@ -13,6 +13,7 @@
 #include "idt.hpp"
 #include "timer.hpp"
 #include "scheduler.hpp"
+#include "spinlock.hpp"
 
 
 extern class terminal term;
