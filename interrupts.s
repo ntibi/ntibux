@@ -5,7 +5,7 @@
 .macro isr_noerr nbr
     .global isr_\nbr
     isr_\nbr:
-    cli
+    call pop_ints
     push 0 # push dummy error code
     push \nbr
     jmp interrupt_common_handler
@@ -14,7 +14,7 @@
 .macro isr_err nbr
     .global isr_\nbr
     isr_\nbr:
-    cli
+    call pop_ints
     push \nbr
     jmp interrupt_common_handler
 .endm
@@ -22,7 +22,7 @@
 .macro pic_isr nbr
     .global pic_isr_\nbr
     pic_isr_\nbr:
-    cli
+    call pop_ints
     push \nbr # err_code = real interrupt number
     push \nbr + 32 # irq [0-15] are mapped to [32-47]
     jmp pic_interrupt_common_handler
@@ -102,7 +102,7 @@ interrupt_common_handler:
 
     add esp, 8 # error code, interrupt nbr
 
-    sti
+    call push_ints
     iret
 
 pic_interrupt_common_handler:
@@ -129,5 +129,5 @@ pic_interrupt_common_handler:
 
     add esp, 8 # error code, interrupt nbr
 
-    sti
+    call push_ints
     iret

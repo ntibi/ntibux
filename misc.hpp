@@ -51,4 +51,6 @@ inline const T& min(const T& a, const T& b) { if (a < b) return a; return b; }
 template<typename T>
 inline const T& max(const T& a, const T& b) { if (a > b) return a; return b; }
 
+extern "C" u32 eflags();
+
 #endif

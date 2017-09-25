@@ -23,8 +23,9 @@ struct int_registers // stack state when handling interrupt
     u32 eip, cs, eflags, useresp, ss; // pushed by the interrupt
 };
 
-void enable_interrupts();
-void disable_interrupts();
+extern "C" i32 interrupts_semaphore;
+extern "C" void push_ints();
+extern "C" void pop_ints();
 
 void dump_int_summary();
 

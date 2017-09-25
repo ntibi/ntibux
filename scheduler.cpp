@@ -59,7 +59,7 @@ task *scheduler::new_task(const char *name, void (*entry)())
 {
     task *new_task;
 
-    disable_interrupts();
+    pop_ints();
 
     new_task = (task*)mem.kheap.alloc(sizeof(task), ALLOC_ZEROED);
     new_task->init(name, this->next_id++, (u32)entry, mem.kernel_pd->clone());
@@ -70,7 +70,7 @@ task *scheduler::new_task(const char *name, void (*entry)())
     term.printk(KERN_DEBUG LOG_SCHED "new task %8g%s%g(%u)\n", new_task->name, new_task->id);
 #endif
 
-    enable_interrupts();
+    push_ints();
     return new_task;
 }
 
@@ -89,7 +89,7 @@ void scheduler::yield()
     if (!this->current || this->tasks.singular())
         return ;
 
-    disable_interrupts();
+    pop_ints();
 
     old = LIST_HEAD(this->tasks, tasks, struct task);
     this->tasks.rotate();
@@ -107,7 +107,7 @@ void scheduler::kill_current_task()
 {
     u32 trash;
 
-    disable_interrupts();
+    pop_ints();
 #ifdef DEBUG_SCHED
     term.printk(KERN_DEBUG LOG_SCHED "task %8g%s%g(%u) killed\n", current->name, current->id);
 #endif
@@ -130,7 +130,7 @@ void scheduler::dump(u32 id)
 {
     task *it;
 
-    disable_interrupts();
+    pop_ints();
     LIST_FOREACH_ENTRY(it, &this->tasks, tasks)
     {
         if (it-> id == id)
@@ -143,17 +143,17 @@ void scheduler::dump(u32 id)
             break ;
         }
     }
-    enable_interrupts();
+    push_ints();
 }
 
 void scheduler::dump()
 {
     task *it;
 
-    disable_interrupts();
+    pop_ints();
     LIST_FOREACH_ENTRY(it, &this->tasks, tasks)
     {
         term.printk("%u %s: %U\n", it->id, it->name, it->elapsed);
     }
-    enable_interrupts();
+    push_ints();
 }

@@ -6,7 +6,7 @@
 .global copy_page
 copy_page:
 
-    cli
+    call pop_ints
 
     mov edx, cr0
     and edx, 0x7fffffff # paging bit off
@@ -20,7 +20,7 @@ copy_page:
     or edx, 0x80000000 # paging bit on
     mov cr0, edx
 
-    sti
+    call push_ints
 
     ret
 
@@ -38,7 +38,44 @@ context_switch: #                   (*old_esp, new_esp)
 
     popad
     popf
-    sti
+    call push_ints
     ret
+    1:
+    ret
+
+.global eflags
+eflags:
+    pushf
+    pop eax
+    ret
+
+
+.extern interrupts_semaphore
+
+.global push_ints # TODO: improve these two funcs
+push_ints:
+    cli
+    push eax
+    mov eax, [interrupts_semaphore]
+    inc eax
+    mov [interrupts_semaphore], eax
+    cmp eax, 1
+    pop eax
+    jl 1f
+    sti
+    1:
+    ret
+
+.global pop_ints
+pop_ints:
+    cli
+    push eax
+    mov eax, [interrupts_semaphore]
+    dec eax
+    mov [interrupts_semaphore], eax
+    cmp eax, 1
+    pop eax
+    jl 1f
+    sti
     1:
     ret

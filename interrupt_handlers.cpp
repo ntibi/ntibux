@@ -6,21 +6,8 @@ u32 pic_interrupts_counter[16] = {0};
 void (*int_handler[32])(const int_registers*);
 void (*pic_int_handler[16])(const int_registers*);
 
-void enable_interrupts()
-{
-#ifdef DEBUG_INTERRUPTS
-    term.printk(KERN_DEBUG "enabling interrupts\n");
-#endif
-    asm volatile ("sti");
-}
-
-void disable_interrupts()
-{
-#ifdef DEBUG_INTERRUPTS
-    term.printk(KERN_DEBUG "disabling interrupts\n");
-#endif
-    asm volatile ("cli");
-}
+// interrupts: disabled <= 0 < enabled
+i32 interrupts_semaphore = 0; // used by (push|pop)_ints
 
 void dump_int_summary()
 {
@@ -100,7 +87,10 @@ void set_interrupts_handlers()
 void timer_handler(const int_registers *ir)
 {
     timer.tick();
+
+    interrupts_semaphore++; // if yield doesnt return (task switched) we won't have the push_ints from interrupt_handler
     sched.yield();
+    interrupts_semaphore--; // if yield returns we get back to regular count (we will have the push_ints from interrupt_handlers)
 }
 
 void keyboard_handler(const int_registers *ir)
