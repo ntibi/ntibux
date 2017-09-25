@@ -47,12 +47,14 @@ void scheduler::init()
     kernel = (task*)mem.kheap.alloc(sizeof(task), ALLOC_ZEROED);
     kernel->init("kernel", this->next_id++, 0, mem.kernel_pd);
 
+    lock.lock();
     this->tasks.init_head();
     this->tasks.push(&kernel->tasks);
 #ifdef DEBUG_SCHED
     term.printk(KERN_DEBUG LOG_SCHED "new task %8g%s%g(%u)\n", kernel->name, kernel->id);
 #endif
     this->current = kernel;
+    lock.release();
 }
 
 task *scheduler::new_task(const char *name, void (*entry)())
@@ -64,13 +66,16 @@ task *scheduler::new_task(const char *name, void (*entry)())
     new_task = (task*)mem.kheap.alloc(sizeof(task), ALLOC_ZEROED);
     new_task->init(name, this->next_id++, (u32)entry, mem.kernel_pd->clone());
 
+    lock.lock();
     this->tasks.push_back(&new_task->tasks);
+    lock.release();
+
+    push_ints();
 
 #ifdef DEBUG_SCHED
     term.printk(KERN_DEBUG LOG_SCHED "new task %8g%s%g(%u)\n", new_task->name, new_task->id);
 #endif
 
-    push_ints();
     return new_task;
 }
 
@@ -86,14 +91,20 @@ void scheduler::yield()
 
     this->current->elapsed++;
 
-    if (!this->current || this->tasks.singular())
-        return ;
-
     pop_ints();
+    lock.lock();
+
+    if (!this->current || this->tasks.singular())
+    {
+        lock.release();
+        push_ints();
+        return ;
+    }
 
     old = LIST_HEAD(this->tasks, tasks, struct task);
     this->tasks.rotate();
     next = LIST_HEAD(this->tasks, tasks, struct task);
+    lock.release();
 
     mem.load_page_directory(next->pd);
     mem.switch_page_directory();
@@ -108,12 +119,14 @@ void scheduler::kill_current_task()
     u32 trash;
 
     pop_ints();
+    lock.lock();
 #ifdef DEBUG_SCHED
     term.printk(KERN_DEBUG LOG_SCHED "task %8g%s%g(%u) killed\n", current->name, current->id);
 #endif
     current->kill();
     mem.kheap.free(current, sizeof(task));
     current = LIST_HEAD(this->tasks, tasks, struct task);
+    lock.release();
 
     mem.load_page_directory(current->pd);
     mem.switch_page_directory();
@@ -131,6 +144,7 @@ void scheduler::dump(u32 id)
     task *it;
 
     pop_ints();
+    lock.lock();
     LIST_FOREACH_ENTRY(it, &this->tasks, tasks)
     {
         if (it-> id == id)
@@ -143,6 +157,7 @@ void scheduler::dump(u32 id)
             break ;
         }
     }
+    lock.release();
     push_ints();
 }
 
@@ -151,9 +166,11 @@ void scheduler::dump()
     task *it;
 
     pop_ints();
+    lock.lock();
     LIST_FOREACH_ENTRY(it, &this->tasks, tasks)
     {
         term.printk("%u %s: %U\n", it->id, it->name, it->elapsed);
     }
+    lock.release();
     push_ints();
 }

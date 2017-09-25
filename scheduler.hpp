@@ -5,6 +5,7 @@
 #include "list.hpp"
 #include "mem.hpp"
 #include "interrupt_handlers.hpp"
+#include "spinlock.hpp"
 
 
 struct regs
@@ -38,7 +39,7 @@ public:
 };
 
 class scheduler
-{ // TODO replace sti/cli by more complete locks
+{
 public:
     void init();
     task *new_task(void (*entry)());
@@ -54,6 +55,7 @@ private:
     task *current;
 
     list tasks;
+    spinlock lock;
 };
 
 void kill_me();
