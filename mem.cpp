@@ -242,7 +242,7 @@ void mem::status()
     this->frames.status();
 }
 
-void mem::dump()
+void mem::dump(page_directory *pd)
 {
     u32 start_addr, prev, current;
     bool dump = false;
@@ -251,8 +251,8 @@ void mem::dump()
     start_addr = 0;
     for (u32 addr = 0; addr < 1024U * 1024U * 4096U - 4096; addr += PAGESIZE)
     {
-        if (this->current_pd->tables[(addr >> 22) & 0x3ff] && this->current_pd->tables[(addr >> 22) & 0x3ff]->pages[(addr >> 12) & 0x3ff].address)
-            current = this->current_pd->tables[(addr >> 22) & 0x3ff]->pages[(addr >> 12) & 0x3ff].address;
+        if (pd->tables[(addr >> 22) & 0x3ff] && pd->tables[(addr >> 22) & 0x3ff]->pages[(addr >> 12) & 0x3ff].address)
+            current = pd->tables[(addr >> 22) & 0x3ff]->pages[(addr >> 12) & 0x3ff].address;
         else
             current = 0;
 
@@ -280,6 +280,8 @@ void mem::dump()
         prev = current;
     }
 }
+
+void mem::dump() { dump(this->current_pd); }
 
 void frames::init(u32 nframes)
 {

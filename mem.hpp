@@ -124,6 +124,7 @@ public:
     u32 unmap_range(u32 vaddr, u32 range);
     void status();
     void dump();
+    void dump(page_directory *pd);
 
     page_directory *current_pd;
     page_directory *kernel_pd;

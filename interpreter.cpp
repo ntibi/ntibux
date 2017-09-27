@@ -176,7 +176,20 @@ int interpreter::command_mem(char **args)
     }
     else if (!strcmp("dump", args[1]))
     {
-        mem.dump();
+        u32 pd = 0;
+
+        if (args[2])
+        {
+            pd = atoi(args[2]);
+            if (pd)
+                mem.dump((page_directory*)pd);
+            else
+                term.printk("usage: %s %s [pd address]\n", args[0], args[1]);
+        }
+        else
+        {
+            mem.dump();
+        }
     }
     else if (!strcmp("alloc", args[1]))
     {
@@ -185,7 +198,7 @@ int interpreter::command_mem(char **args)
         if (args[2] && (nbr = atoi(args[2])))
             mem.kheap.alloc(nbr * PAGESIZE);
         else
-            term.printk("usage: %s alloc $nbr_of_pages\n", args[0]);
+            term.printk("usage: %s %s $nbr_of_pages\n", args[0], args[1]);
     }
     else if (!strcmp("free", args[1]))
     {
@@ -195,7 +208,7 @@ int interpreter::command_mem(char **args)
         if (args[2] && args[3] && (addr = atoi(args[2])) && (nbr = atoi(args[3])))
             mem.kheap.free((void*)addr, nbr * PAGESIZE);
         else
-            term.printk("usage: %s free $addr $nbr_of_pages\n", args[0]);
+            term.printk("usage: %s %s $addr $nbr_of_pages\n", args[0], args[1]);
     }
     else
     {
