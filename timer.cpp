@@ -18,7 +18,7 @@ void timer::set_freq(u32 hz)
 {
     u32 div = CLOCK_BASE_FREQ / hz;
 
-    term.printk(KERN_INFO LOG_TIMER "setting timer frequency at %uHz (%u ms interval)\n", hz, hz / 1000);
+    term.printk(KERN_INFO LOG_TIMER "setting timer frequency at %uHz (%u ms interval)\n", hz, 1000 / hz);
     outb(PIT_COMMAND, 0x36);
     outb(PIT_DATA1, div & 0xff);
     outb(PIT_DATA1, (div >> 8) & 0xff);

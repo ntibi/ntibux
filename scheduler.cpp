@@ -152,8 +152,8 @@ void scheduler::dump(u32 id)
             term.printk("%8g%s%g(%u)\n", it->name, it->id);
             term.printk("esp: 0x%x\n", it->esp);
             term.printk("pd: 0x%x\n", it->pd);
-            term.printk("created: %U\n", it->created);
-            term.printk("elapsed: %U\n", it->elapsed);
+            term.printk("created: %U (%U ms ago)\n", it->created, timer::msecs(timer.ticks - it->created));
+            term.printk("elapsed: %U (%U ms)\n", it->elapsed, timer::msecs(it->elapsed));
             break ;
         }
     }
@@ -169,7 +169,7 @@ void scheduler::dump()
     lock.lock();
     LIST_FOREACH_ENTRY(it, &this->tasks, tasks)
     {
-        term.printk("%u %s: %U\n", it->id, it->name, it->elapsed);
+        term.printk("%u: %s (%U ms)\n", it->id, it->name, timer::msecs(timer.ticks - it->created));
     }
     lock.release();
     push_ints();

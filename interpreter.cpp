@@ -345,16 +345,23 @@ int interpreter::command_sched(char **args)
     }
     else if (!strcmp("dump", args[1]))
     {
-        sched.dump();
+        if (args[2])
+        {
+            u32 id = atoi(args[2]);
+            sched.dump(id);
+        }
+        else
+        {
+            sched.dump();
+        }
     }
     else
     {
-        u32 id = atoi(args[1]);
-        sched.dump(id);
+        goto usage;
     }
     return 0;
 
 usage:
-    term.printk("usage: %s (dump)\n", args[0]);
+    term.printk("usage: %s (dump [id])\n", args[0]);
     return 1;
 }

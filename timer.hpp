@@ -20,6 +20,12 @@ public:
     void init();
     void dump();
 
+    static u64 msecs(u64 ticks) { return ticks * 1000 / CLOCK_FREQ; }
+    static u64 secs(u64 ticks)  { return ticks / CLOCK_FREQ; }
+    static u64 mins(u64 ticks)  { return ticks / CLOCK_FREQ / 60; }
+    static u64 hours(u64 ticks) { return ticks / CLOCK_FREQ / 60 / 60; }
+    static u64 days(u64 ticks)  { return ticks / CLOCK_FREQ / 60 / 60 / 24; }
+
     u64 ticks;
 };
 
