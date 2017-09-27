@@ -21,7 +21,7 @@
 
 #define KEYBOARD_BUFFER_SIZE 256
 
-#define CLOCK_FREQ 200                 // Hz             // TODO: benchmark avg process switch time and set CLOCK_FREQ accordingly
+#define CLOCK_FREQ 1000                 // Hz             // TODO: benchmark avg process switch time and set CLOCK_FREQ accordingly
 #define MS_INTERVAL (1000 / CLOCK_FREQ) // interval in ms
 
 #define KERNEL_STACK_SIZE 16384
@@ -34,12 +34,14 @@
 // # define DEBUG_GETSCANCODE
 // # define DEBUG_READLINE
 // # define DEBUG_GDT
+// # define DEBUG_MM
 // # define DEBUG_KHEAP
 // # define DEBUG_IDT
 // # define DEBUG_INTERRUPTS
 // # define DEBUG_TIMER
 // # define DEBUG_KBD
 // # define DEBUG_SCHED
+// # define     DEBUG_SCHED_SWITCH
 #endif
 
 /* === THE END === */

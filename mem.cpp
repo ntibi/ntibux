@@ -371,6 +371,7 @@ kheap::kheap() : paging_enabled(false), reserve_order(0), kheap_start(0), free_z
 
 void kheap::init(u32 reserve)
 {
+    lock.lock();
     this->min_order = 12; // (1 << 12) = PAGESIZE
     this->max_order = this->min_order;
     while ((1U << this->max_order) < mem.total && this->max_order < 32) ++this->max_order;
@@ -403,6 +404,7 @@ void kheap::init(u32 reserve)
 
     this->kheap_start = (kend + 0xfff) & ~0xfff;
     this->free_zone = this->kheap_start;
+    lock.release();
 }
 
 void kheap::enable_paging()
@@ -517,6 +519,8 @@ void *kheap::alloc(u32 size) { return this->alloc(size, 0); }
 void *kheap::alloc(u32 size, u32 flags)
 {
     void *out;
+
+    lock.lock();
     u32 order = this->get_order(size);
 
     out = this->buddy_alloc(order);
@@ -526,16 +530,21 @@ void *kheap::alloc(u32 size, u32 flags)
 #ifdef DEBUG_KHEAP
     term.printk(KERN_DEBUG LOG_KHEAP "alloc %p(s:%u(%u), p:%c%c)\n", out, size, 1 << order, flags & ALLOC_ALIGNED ? 'A' : ' ', flags & ALLOC_ZEROED ? '0' : ' ');
 #endif
+
+    lock.release();
+
     return out;
 }
 
 void kheap::free(void *addr, u32 size)
 {
+    lock.lock();
     u32 order = this->get_order(size);
     this->buddy_free(addr, order);
 #ifdef DEBUG_KHEAP
     term.printk(KERN_DEBUG LOG_KHEAP "free  %p(s:%u(%u))\n", addr, size, 1 << order);
 #endif
+    lock.release();
 }
 
 void *kheap::unpaged_alloc(u32 size) { return this->unpaged_alloc(size, 0); }
@@ -544,6 +553,7 @@ void *kheap::unpaged_alloc(u32 size, u32 flags)
 {
     void *out;
 
+    lock.lock();
     if (flags & ALLOC_ALIGNED)
         this->free_zone = (this->free_zone + 0xfff) & ~0xfff;
     out = (void*)this->free_zone;
@@ -553,5 +563,7 @@ void *kheap::unpaged_alloc(u32 size, u32 flags)
 #ifdef DEBUG_KHEAP
     term.printk(KERN_DEBUG LOG_KHEAP "ualloc %p(s:%u, f:%c%c)\n", out, size, flags & ALLOC_ALIGNED ? 'A' : ' ', flags & ALLOC_ZEROED ? '0' : ' ');
 #endif
+    lock.release();
+
     return out;
 }

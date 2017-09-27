@@ -4,6 +4,7 @@
 #include "kernel.hpp"
 #include "multiboot.h"
 #include "header.hpp"
+#include "spinlock.hpp"
 
 
 extern "C" void copy_page(u32 dst, u32 src);
@@ -94,6 +95,8 @@ private:
     inline u32 get_order(u32 size);
     void *buddy_alloc(u32 order);
     void buddy_free(void *addr, u32 order);
+
+    spinlock lock;
 };
 
 #define MAP_RO          (0 << 1)

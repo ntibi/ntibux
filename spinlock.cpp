@@ -1,8 +1,6 @@
 #include "spinlock.hpp"
 
-spinlock::spinlock() : locked(0)
-{
-}
+spinlock::spinlock() : locked(0) { }
 
 void spinlock::lock()
 {

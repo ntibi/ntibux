@@ -48,6 +48,7 @@ public:
     void kill_current_task();
     void dump();
     void dump(u32 id);
+    task *get_current() { return current; }
 
 private:
     u32 next_id;

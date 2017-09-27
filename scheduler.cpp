@@ -64,7 +64,7 @@ task *scheduler::new_task(const char *name, void (*entry)())
     pop_ints();
 
     new_task = (task*)mem.kheap.alloc(sizeof(task), ALLOC_ZEROED);
-    new_task->init(name, this->next_id++, (u32)entry, mem.kernel_pd->clone());
+    new_task->init(name, this->next_id++, (u32)entry, mem.kernel_pd);
 
     lock.lock();
     this->tasks.push_back(&new_task->tasks);
@@ -111,6 +111,9 @@ void scheduler::yield()
 
     this->current = next;
 
+#ifdef DEBUG_SCHED_SWITCH
+    term.printk(KERN_DEBUG LOG_SCHED "%8g%s%g -> %8g%s%g\n", old->name, next->name);
+#endif
     context_switch(&old->esp, next->esp);
 }
 
@@ -169,7 +172,7 @@ void scheduler::dump()
     lock.lock();
     LIST_FOREACH_ENTRY(it, &this->tasks, tasks)
     {
-        term.printk("%u: %s (%U ms)\n", it->id, it->name, timer::msecs(timer.ticks - it->created));
+        term.printk("%u: %8g%s%g (%U ms)\n", it->id, it->name, timer::msecs(timer.ticks - it->created));
     }
     lock.release();
     push_ints();
