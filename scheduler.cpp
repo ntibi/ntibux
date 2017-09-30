@@ -3,17 +3,20 @@
 
 class scheduler sched;
 
+u32 stack_top = (u32)&_stack_top;
+u32 stack_bottom = (u32)&_stack_bottom;
 
 void task::init(u32 id, u32 entry, page_directory *pd)
 {
     this->id = id;
 
-    this->esp = (u32)mem.kheap.alloc(KERNEL_STACK_SIZE, ALLOC_ALIGNED) + KERNEL_STACK_SIZE; // start at the end of the stack
+    this->stack = (u32)mem.kheap.alloc(KERNEL_STACK_SIZE, ALLOC_ALIGNED) + KERNEL_STACK_SIZE; // start at the end of the stack
+    this->stack_size = KERNEL_STACK_SIZE;
 
-    memset((u32*)this->esp - sizeof(u32) * 11, 0, sizeof(u32) * 11);
-    *(u32*)(this->esp - sizeof(u32) * 1) = (u32)kill_me;
-    *(u32*)(this->esp - sizeof(u32) * 2) = entry;
-    this->esp -= sizeof(u32) * 11; // flags + 8 regs + eip
+    memset((u32*)this->stack - sizeof(u32) * 11, 0, sizeof(u32) * 11);
+    *(u32*)(this->stack - sizeof(u32) * 1) = (u32)kill_me;
+    *(u32*)(this->stack - sizeof(u32) * 2) = entry;
+    this->esp = this->stack - (sizeof(u32) * 11); // flags + 8 regs + eip
     /* new_task stack state:
      * &kill_me()
      * entry_point
@@ -42,12 +45,20 @@ void scheduler::init()
 {
     task *kernel;
 
+    lock.lock();
+
     this->next_id = 0;
 
+    // manually creating initial kernel task
     kernel = (task*)mem.kheap.alloc(sizeof(task), ALLOC_ZEROED);
-    kernel->init("kernel", this->next_id++, 0, mem.kernel_pd);
+    kernel->set_name("kernel");
+    kernel->id = this->next_id++;
+    kernel->stack = stack_top;
+    kernel->stack_size = stack_top - stack_bottom;
+    kernel->pd = mem.kernel_pd;
+    kernel->elapsed = 0;
+    kernel->created = timer.ticks;
 
-    lock.lock();
     this->tasks.init_head();
     this->tasks.push(&kernel->tasks);
 #ifdef DEBUG_SCHED
@@ -153,7 +164,7 @@ void scheduler::dump(u32 id)
         if (it-> id == id)
         {
             term.printk("%8g%s%g(%u)\n", it->name, it->id);
-            term.printk("esp: 0x%x\n", it->esp);
+            term.printk("stack: 0x%x <- 0x%x <- 0x%x (%u%%)\n", it->stack - it->stack_size, it->esp, it->stack, (it->stack - it->esp) * 100 / it->stack_size);
             term.printk("pd: 0x%x\n", it->pd);
             term.printk("created: %U (%U ms ago)\n", it->created, timer::msecs(timer.ticks - it->created));
             term.printk("elapsed: %U (%U ms)\n", it->elapsed, timer::msecs(it->elapsed));

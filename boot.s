@@ -17,20 +17,20 @@
 .section .bss
 
 .align 16
-.global stack_bottom
-.global stack_top
+.global _stack_bottom
+.global _stack_top
 
-stack_bottom:
+_stack_bottom:
 .skip 16384 # 16 KB for bss + stack
-stack_top:
+_stack_top:
 
 
 .section .text
 .global _start
 .type _start, @function
 _start:
-    lea ebp, stack_top
-    lea esp, stack_top
+    lea ebp, _stack_top
+    lea esp, _stack_top
     push eax # multiboot header magic
     push ebx # multiboot header pointer
     call kernel_main

@@ -24,8 +24,10 @@ extern class timer timer;
 extern class scheduler sched;
 extern class debug debug;
 
-extern u32 stack_top;
-extern u32 stack_bottom;
+extern u32 _kbeginning;
+extern u32 _kend;
+extern u32 _stack_top;
+extern u32 _stack_bottom;
 
 void motd();
 

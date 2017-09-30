@@ -22,6 +22,8 @@ class task
 public:
     u32 id;
     u32 esp;
+    u32 stack; // stack top
+    u32 stack_size;
 
     u64 created;
     u64 elapsed;

@@ -1,7 +1,5 @@
 #include "mem.hpp"
 
-extern u32 _kbeginning;
-extern u32 _kend;
 
 u32 kbeginning = (u32)&_kbeginning;
 u32 kend = (u32)&_kend;
