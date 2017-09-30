@@ -33,6 +33,8 @@ void panic(const char fn[], u32 line, const char msg[]);
 #define PANIC(msg) panic(__FILE__, __LINE__, msg)
 #define UNREACHABLE PANIC("unreachable code reached")
 
+#define LOG(fmt, ...) term.printk(fmt, ##__VA_ARGS__)
+
 inline void outb(u16 port, u8 val)
 {
     asm volatile ( "outb %1, %0" : : "a"(val), "Nd"(port)  );

@@ -72,8 +72,6 @@
 #define LOG_TIMER "%13gtimer%g: "
 #define LOG_SCHED "%13gsched%g: "
 
-#define LOG(fmt, ...) term.printk(fmt, ##__VA_ARGS__)
-
 typedef uint64_t u64;
 typedef uint32_t u32;
 typedef uint16_t u16;
