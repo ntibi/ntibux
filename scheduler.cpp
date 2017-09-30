@@ -51,7 +51,7 @@ void scheduler::init()
     this->tasks.init_head();
     this->tasks.push(&kernel->tasks);
 #ifdef DEBUG_SCHED
-    term.printk(KERN_DEBUG LOG_SCHED "new task %8g%s%g(%u)\n", kernel->name, kernel->id);
+    LOG(KERN_DEBUG LOG_SCHED "new task %8g%s%g(%u)\n", kernel->name, kernel->id);
 #endif
     this->current = kernel;
     lock.release();
@@ -73,7 +73,7 @@ task *scheduler::new_task(const char *name, void (*entry)())
     push_ints();
 
 #ifdef DEBUG_SCHED
-    term.printk(KERN_DEBUG LOG_SCHED "new task %8g%s%g(%u)\n", new_task->name, new_task->id);
+    LOG(KERN_DEBUG LOG_SCHED "new task %8g%s%g(%u)\n", new_task->name, new_task->id);
 #endif
 
     return new_task;
@@ -112,7 +112,7 @@ void scheduler::yield()
     this->current = next;
 
 #ifdef DEBUG_SCHED_SWITCH
-    term.printk(KERN_DEBUG LOG_SCHED "%8g%s%g -> %8g%s%g\n", old->name, next->name);
+    LOG(KERN_DEBUG LOG_SCHED "%8g%s%g -> %8g%s%g\n", old->name, next->name);
 #endif
     context_switch(&old->esp, next->esp);
 }
@@ -124,7 +124,7 @@ void scheduler::kill_current_task()
     pop_ints();
     lock.lock();
 #ifdef DEBUG_SCHED
-    term.printk(KERN_DEBUG LOG_SCHED "task %8g%s%g(%u) killed\n", current->name, current->id);
+    LOG(KERN_DEBUG LOG_SCHED "task %8g%s%g(%u) killed\n", current->name, current->id);
 #endif
     current->kill();
     mem.kheap.free(current, sizeof(task));

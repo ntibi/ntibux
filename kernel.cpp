@@ -48,13 +48,13 @@ extern "C" void kernel_main(struct multiboot_info *mboot, u32 magic)
 
     if (magic != MULTIBOOT_BOOTLOADER_MAGIC)
     {
-        term.printk(KERN_CRIT "multiboot magic not matching... (%p)\n", magic);
+        LOG(KERN_CRIT "multiboot magic not matching... (%p)\n", magic);
         return ;
     }
     if (mboot->cmdline && *(char*)mboot->cmdline)
-        term.printk(KERN_INFO "booting %9g%s%r\n", mboot->cmdline);
+        LOG(KERN_INFO "booting %9g%s%r\n", mboot->cmdline);
     else
-        term.printk(KERN_WARNING "no cmdline\n");
+        LOG(KERN_WARNING "no cmdline\n");
 
     debug.init(mboot);
     gdt.init();

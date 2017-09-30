@@ -18,7 +18,7 @@ void page::free(void)
 {
     if (!this->address)
     {
-        term.printk(KERN_ERROR LOG_MM "freeing non allocated frame (0x%x)\n", this->address & 0xfffff000);
+        LOG(KERN_ERROR LOG_MM "freeing non allocated frame (0x%x)\n", this->address & 0xfffff000);
         return ;
     }
     this->address = 0;
@@ -75,7 +75,7 @@ mem::mem() : kheap(), total(0), paging_enabled(false) { }
 void mem::init(u32 high_mem)
 {
     this->total = high_mem << 10;
-    term.printk(KERN_INFO LOG_MM "detected mem: %uMB (%u pages)\n", this->total >> 20, (this->total) / PAGESIZE);
+    LOG(KERN_INFO LOG_MM "detected mem: %uMB (%u pages)\n", this->total >> 20, (this->total) / PAGESIZE);
 
     this->kheap.init(PAGESIZE * 64);
     this->frames.init(this->total / PAGESIZE);
@@ -98,7 +98,7 @@ void mem::identity_map_kernel()
 
     this->map_range(0, 0, kend, MAP_KERNEL_CODE); // identity mapping kernel code
 #ifdef DEBUG_MM
-    term.printk(KERN_DEBUG LOG_MM "identity mapped the %d first frames (0x%x - 0x%x)\n", ((kend + 0xfff) & 0xfffff000) / PAGESIZE, 0, (kend + 0xfff) & 0xfffff000);
+    LOG(KERN_DEBUG LOG_MM "identity mapped the %d first frames (0x%x - 0x%x)\n", ((kend + 0xfff) & 0xfffff000) / PAGESIZE, 0, (kend + 0xfff) & 0xfffff000);
 #endif
 }
 
@@ -200,7 +200,7 @@ page *mem::get_page(u32 address)
 void mem::enable_paging()
 {
 #ifdef DEBUG_MM
-    term.printk(KERN_DEBUG LOG_MM "enabling paging\n");
+    LOG(KERN_DEBUG LOG_MM "enabling paging\n");
 #endif
     asm volatile (
             "mov eax, cr0;"
@@ -222,7 +222,7 @@ void mem::load_page_directory(struct page_directory *pd)
 void mem::switch_page_directory()
 {
 #ifdef DEBUG_MM_SWITCH
-    term.printk(KERN_DEBUG LOG_MM "switching page directory\n");
+    LOG(KERN_DEBUG LOG_MM "switching page directory\n");
 #endif
     asm volatile ("mov cr3, %0;" :: "r"(this->get_paddr((u32)this->current_pd->paddrs)));
 }
@@ -352,7 +352,7 @@ u32 mem::alloc_frame(page *p, u32 frame, u32 flags)
 {
     if (!this->frames.is_free(frame))
     {
-        term.printk(KERN_ERROR LOG_MM "frame 0x%x already mapped to a page\n", frame);
+        LOG(KERN_ERROR LOG_MM "frame 0x%x already mapped to a page\n", frame);
         return 0;
     }
     this->frames.mark_frame(frame);
@@ -386,20 +386,20 @@ void kheap::init(u32 reserve)
     if (this->reserve_order < this->min_order)
     {
 #ifdef DEBUG_KHEAP
-        term.printk(KERN_WARNING LOG_KHEAP "kernel heap reserve is too small (%d), scaled up to (%d)\n", this->reserve_order, this->min_order);
+        LOG(KERN_WARNING LOG_KHEAP "kernel heap reserve is too small (%d), scaled up to (%d)\n", this->reserve_order, this->min_order);
 #endif
         this->reserve_order = this->min_order;
     }
     if (this->reserve_order > this->max_order)
     {
 #ifdef DEBUG_KHEAP
-        term.printk(KERN_WARNING LOG_KHEAP "kernel heap reserve is too big (%d), scaled down to (%d)\n", this->reserve_order, this->max_order);
+        LOG(KERN_WARNING LOG_KHEAP "kernel heap reserve is too big (%d), scaled down to (%d)\n", this->reserve_order, this->max_order);
 #endif
         this->reserve_order = this->max_order;
     }
 
 #ifdef DEBUG_KHEAP
-    term.printk(KERN_DEBUG LOG_KHEAP "reserve size: 0x%x(order %d<%d<%d)\n", 1U << this->reserve_order, this->min_order, this->reserve_order, this->max_order);
+    LOG(KERN_DEBUG LOG_KHEAP "reserve size: 0x%x(order %d<%d<%d)\n", 1U << this->reserve_order, this->min_order, this->reserve_order, this->max_order);
 #endif
 
     this->kheap_start = (kend + 0xfff) & ~0xfff;
@@ -418,14 +418,14 @@ void kheap::enable_paging()
     this->free_zone = (this->free_zone + 0xfff) & ~0xfff;
 
 #ifdef DEBUG_KHEAP
-    term.printk(KERN_DEBUG LOG_KHEAP "identity mapping %p -> %p\n", this->kheap_start, this->free_zone + PAGESIZE);
+    LOG(KERN_DEBUG LOG_KHEAP "identity mapping %p -> %p\n", this->kheap_start, this->free_zone + PAGESIZE);
 #endif
 
     //                                                                                      __________/ needed for the mapping of the reserve
     mem.map_range(this->kheap_start, this->kheap_start, this->free_zone - this->kheap_start + PAGESIZE, MAP_KERNEL_DATA); // identity map already used memory
 
 #ifdef DEBUG_KHEAP
-    term.printk(KERN_DEBUG LOG_KHEAP "classic mapping %p -> %p\n", new_free_zone, new_free_zone + (1 << this->reserve_order));
+    LOG(KERN_DEBUG LOG_KHEAP "classic mapping %p -> %p\n", new_free_zone, new_free_zone + (1 << this->reserve_order));
 #endif
     mem.map_range(new_free_zone, 1U << this->reserve_order, MAP_KERNEL_DATA); // classic map for the reserve
 
@@ -439,11 +439,11 @@ void kheap::double_reserve()
 {
     if (this->reserve_order >= this->max_order)
     {
-        term.printk(KERN_WARNING LOG_KHEAP "cannot expand heap reserve anymore\n");
+        LOG(KERN_WARNING LOG_KHEAP "cannot expand heap reserve anymore\n");
         return ;
     }
 #ifdef DEBUG_KHEAP
-    term.printk(KERN_DEBUG LOG_KHEAP "expanding reserve order %d->%d (0x%x->0x%x)\n", this->reserve_order, this->reserve_order + 1, 1U << this->reserve_order, 1U << (this->reserve_order + 1));
+    LOG(KERN_DEBUG LOG_KHEAP "expanding reserve order %d->%d (0x%x->0x%x)\n", this->reserve_order, this->reserve_order + 1, 1U << this->reserve_order, 1U << (this->reserve_order + 1));
 #endif
     mem.map_range(this->free_zone + (1U << this->reserve_order), 1U << this->reserve_order, MAP_KERNEL_DATA);
     *(u32*)(this->free_zone + (1U << this->reserve_order)) = this->get_free_block(this->reserve_order) ? *(u32*)this->get_free_block(this->reserve_order) : 0;
@@ -528,7 +528,7 @@ void *kheap::alloc(u32 size, u32 flags)
     if (flags & ALLOC_ZEROED)
         memset(out, 0, size);
 #ifdef DEBUG_KHEAP
-    term.printk(KERN_DEBUG LOG_KHEAP "alloc %p(s:%u(%u), p:%c%c)\n", out, size, 1 << order, flags & ALLOC_ALIGNED ? 'A' : ' ', flags & ALLOC_ZEROED ? '0' : ' ');
+    LOG(KERN_DEBUG LOG_KHEAP "alloc %p(s:%u(%u), p:%c%c)\n", out, size, 1 << order, flags & ALLOC_ALIGNED ? 'A' : ' ', flags & ALLOC_ZEROED ? '0' : ' ');
 #endif
 
     lock.release();
@@ -542,7 +542,7 @@ void kheap::free(void *addr, u32 size)
     u32 order = this->get_order(size);
     this->buddy_free(addr, order);
 #ifdef DEBUG_KHEAP
-    term.printk(KERN_DEBUG LOG_KHEAP "free  %p(s:%u(%u))\n", addr, size, 1 << order);
+    LOG(KERN_DEBUG LOG_KHEAP "free  %p(s:%u(%u))\n", addr, size, 1 << order);
 #endif
     lock.release();
 }
@@ -561,7 +561,7 @@ void *kheap::unpaged_alloc(u32 size, u32 flags)
     if (flags & ALLOC_ZEROED)
         memset(out, 0, size);
 #ifdef DEBUG_KHEAP
-    term.printk(KERN_DEBUG LOG_KHEAP "ualloc %p(s:%u, f:%c%c)\n", out, size, flags & ALLOC_ALIGNED ? 'A' : ' ', flags & ALLOC_ZEROED ? '0' : ' ');
+    LOG(KERN_DEBUG LOG_KHEAP "ualloc %p(s:%u, f:%c%c)\n", out, size, flags & ALLOC_ALIGNED ? 'A' : ' ', flags & ALLOC_ZEROED ? '0' : ' ');
 #endif
     lock.release();
 

@@ -9,11 +9,11 @@ void debug::init(struct multiboot_info *mboot)
     if (mboot->flags & (1 << 5) && mboot->u.elf_sec.num)
     {
         this->elf_sec = &mboot->u.elf_sec;
-        term.printk(KERN_NOTICE "debug informations found (%d symbols)\n", this->elf_sec->num);
+        LOG(KERN_NOTICE "debug informations found (%d symbols)\n", this->elf_sec->num);
     }
     else
     {
-        term.printk(KERN_NOTICE "no debug informations found\n");
+        LOG(KERN_NOTICE "no debug informations found\n");
     }
 }
 

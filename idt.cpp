@@ -88,6 +88,6 @@ void IDT::load_idt()
 {
     asm volatile ("lidt [%0]" :: "r"((u32)&this->idt));
 #ifdef DEBUG_IDT
-    term.printk(KERN_DEBUG LOG_IDT "IDT loaded\n");
+    LOG(KERN_DEBUG LOG_IDT "IDT loaded\n");
 #endif
 }

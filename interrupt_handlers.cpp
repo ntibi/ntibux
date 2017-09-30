@@ -26,7 +26,7 @@ void dump_int_summary()
 void interrupt_handler(const int_registers int_regs)
 {
 #ifdef DEBUG_INTERRUPTS
-    term.printk(KERN_DEBUG "int %d: 0x%x \n", int_regs.int_nbr, int_regs.err_code);
+    LOG(KERN_DEBUG "int %d: 0x%x \n", int_regs.int_nbr, int_regs.err_code);
 #endif
 
     interrupts_counter[int_regs.int_nbr]++;
@@ -46,7 +46,7 @@ void pic_interrupt_handler(const int_registers int_regs)
 {
 #ifdef DEBUG_INTERRUPTS
     if (int_regs.pic_int_nbr != 0 && int_regs.pic_int_nbr != 1) // skip: timer, kbd
-        term.printk(KERN_DEBUG "PIC int %d\n", int_regs.pic_int_nbr);
+        LOG(KERN_DEBUG "PIC int %d\n", int_regs.pic_int_nbr);
 #endif
 
     if (int_regs.pic_int_nbr >= 8)
@@ -104,7 +104,7 @@ void page_fault_handler(const int_registers *ir)
 
     asm volatile ("mov %0, cr2" : "=r"(fault)); // fault addr is in cr2
 
-    term.printk(KERN_EMERG "page fault @0x%x  %c%c%c%c%c\n", fault,
+    LOG(KERN_EMERG "page fault @0x%x  %c%c%c%c%c\n", fault,
             ir->err_code & 0x1  ? 'v' : 'p', // protection violation or non present page
             ir->err_code & 0x2  ? 'w' : 'r', // fault caused by read or write
             ir->err_code & 0x4  ? 'u' : 'k', // user or kernel
@@ -116,6 +116,6 @@ void page_fault_handler(const int_registers *ir)
 
 void general_protection_fault_handler(const int_registers *ir)
 {
-    term.printk(KERN_EMERG "general protection fault @ eip: 0x%x\n", ir->eip);
+    LOG(KERN_EMERG "general protection fault @ eip: 0x%x\n", ir->eip);
     PANIC("GPF");
 }

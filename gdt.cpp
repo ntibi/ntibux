@@ -18,7 +18,7 @@ void GDT::set_gate(u8 n, u32 base, u32 limit, u8 access, u8 flags)
 
     this->gdt_entries_size = n + 1;
 #ifdef DEBUG_GDT
-    term.printk(KERN_DEBUG LOG_GDT "gate[%d]: base: %x, limit: %x, access: %x, flags: %x\n", n, base, limit, access, flags);
+    LOG(KERN_DEBUG LOG_GDT "gate[%d]: base: %x, limit: %x, access: %x, flags: %x\n", n, base, limit, access, flags);
 #endif
 }
 
@@ -28,7 +28,7 @@ void GDT::init(void)
     GDT::flags flags(GDT::flags::GRANULARITY_4KB | GDT::flags::MODE_32B); // operand size: 32b, granularity: 4KB
 
 #ifdef DEBUG_GDT
-    term.printk(KERN_DEBUG LOG_GDT "setting GDT entries\n");
+    LOG(KERN_DEBUG LOG_GDT "setting GDT entries\n");
 #endif
     this->set_gate(0, 0, 0, 0, 0);                                                                                                                                     // NULL segment
     this->set_gate(1, 0, 0xFFFFFFFF, GDT::access(GDT::access::KERNEL | GDT::access::CODE | GDT::access::READABLE_CODE  | GDT::access::NON_CONFORMING).raw, flags.raw); // kernel code
@@ -57,7 +57,7 @@ void GDT::load_gdt(void)
                     "1:"
                     :: "r"(&this->gdt_ptr));
 #ifdef DEBUG_GDT
-    term.printk(KERN_DEBUG LOG_GDT "GDT loaded\n");
+    LOG(KERN_DEBUG LOG_GDT "GDT loaded\n");
 #endif
 }
 
