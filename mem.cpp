@@ -221,7 +221,7 @@ void mem::load_page_directory(struct page_directory *pd)
 
 void mem::switch_page_directory()
 {
-#ifdef DEBUG_MM
+#ifdef DEBUG_MM_SWITCH
     term.printk(KERN_DEBUG LOG_MM "switching page directory\n");
 #endif
     asm volatile ("mov cr3, %0;" :: "r"(this->get_paddr((u32)this->current_pd->paddrs)));

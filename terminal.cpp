@@ -158,12 +158,6 @@ wait_key:
     }
     if (c & 0x80)
         goto wait_key;
-#ifdef DEBUG_GETSCANCODE
-    this->save_pos();
-    this->set_pos(10, 0);
-    printk_noup("|%c%c%c|", this->ctrl ? 'C' : ' ', this->shift ? 'S' : ' ', this->alt ? 'A' : ' ');
-    this->load_pos();
-#endif
     return c;
 }
 
@@ -179,12 +173,6 @@ keypress terminal::getchar(void)
         k.asc = kbdus[k.scancode];
     k.ctrl = this->ctrl;
     k.alt = this->alt;
-#ifdef DEBUG_GETCHAR
-    this->save_pos();
-    this->set_pos(0, 0);
-    printk("|%x %x %c|", kbdus[k.scancode], k.asc, is_sep(k.asc) ? ' ' : k.asc);
-    this->load_pos();
-#endif
     return k;
 }
 
@@ -386,12 +374,6 @@ size_t terminal::tread_line(char *buf, size_t n)
 
     while (i < n - 1)
     {
-#ifdef DEBUG_READLINE
-        this->save_pos();
-        this->set_pos(35, 0);
-        printk("|%u|", i);
-        this->load_pos();
-#endif
         k = getchar();
         if (check_binds(k))
             continue;

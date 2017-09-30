@@ -30,18 +30,16 @@
 
 
 #ifdef DEBUG
-// # define DEBUG_GETCHAR
-// # define DEBUG_GETSCANCODE
-// # define DEBUG_READLINE
 // # define DEBUG_GDT
 // # define DEBUG_MM
+// # define    DEBUG_MM_SWITCH
 // # define DEBUG_KHEAP
 // # define DEBUG_IDT
 // # define DEBUG_INTERRUPTS
 // # define DEBUG_TIMER
 // # define DEBUG_KBD
 // # define DEBUG_SCHED
-// # define     DEBUG_SCHED_SWITCH
+// # define    DEBUG_SCHED_SWITCH
 #endif
 
 /* === THE END === */
@@ -67,12 +65,12 @@
 #define LL_INFO 6
 #define LL_DEBUG 7
 
-#define LOG_MM "%13gmm%r: "
-#define LOG_KHEAP "%13gkheap%r: "
-#define LOG_GDT "%13ggdt%r: "
-#define LOG_IDT "%13gidt%r: "
-#define LOG_TIMER "%13gtimer%r: "
-#define LOG_SCHED "%13gsched%r: "
+#define LOG_MM "%13gmm%g: "
+#define LOG_KHEAP "%13gkheap%g: "
+#define LOG_GDT "%13ggdt%g: "
+#define LOG_IDT "%13gidt%g: "
+#define LOG_TIMER "%13gtimer%g: "
+#define LOG_SCHED "%13gsched%g: "
 
 
 typedef uint64_t u64;

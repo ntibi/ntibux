@@ -4,12 +4,6 @@ class timer timer;
 
 void timer::tick()
 {
-#ifdef DEBUG_TIMER
-    term.save_pos();
-    term.tputc_xy(this->ticks % 2 ? ' ' : 'T', 79, 0);
-    term.load_pos();
-    term.update_cursor();
-#endif
     this->ticks++;
     return ;
 }
