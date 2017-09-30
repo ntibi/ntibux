@@ -55,6 +55,7 @@ void scheduler::init()
     kernel->id = this->next_id++;
     kernel->stack = stack_top;
     kernel->stack_size = stack_top - stack_bottom;
+    kernel->esp = 0; // will be set when switched out
     kernel->pd = mem.kernel_pd;
     kernel->elapsed = 0;
     kernel->created = timer.ticks;
