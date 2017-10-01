@@ -24,6 +24,7 @@ static void shell()
 
     while (1)
     {
+        term.reset_color();
         term.tputs("> ");
         len = term.tread_line(buf, MAX_LINE_LEN);
         buf[len] = 0;

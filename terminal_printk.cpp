@@ -136,10 +136,16 @@ size_t terminal::vprintk(const char *format, va_list params)
                     ++w;
                     break;
                 case 'g': // set fg color
-                    this->set_color(param | (this->color & 0xf0));
+                    if (param)
+                        this->set_color(param | (this->color & 0xf0));
+                    else // reset if no param
+                        this->set_color((this->def_color & 0xf) | (this->color & 0xf0));
                     break;
                 case 'G': // set bg color
-                    this->set_color((this->color & 0xf) | param << 4);
+                    if (param)
+                        this->set_color((this->color & 0xf) | param << 4);
+                    else // reset if no param
+                        this->set_color((this->def_color & 0xf) | (this->color & 0xf0));
                     break;
                 case 'r': // reset colors
                     this->color = this->def_color;
