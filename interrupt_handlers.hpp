@@ -60,27 +60,27 @@ void set_interrupts_handlers();
 #define INT_SIMD            19
 #define INT_VIRTUALIZATION  20
 
-void timer_handler(const int_registers*);
-void keyboard_handler(const int_registers*);
+void timer_handler                         (const int_registers *ir);
+void keyboard_handler                      (const int_registers *ir);
 
-void divide_by_zero_handler(const int_registers *ir);
-void debug_trap_handler(const int_registers *ir);
-void nmi_handler(const int_registers *ir);
-void breakpoint_handler(const int_registers *ir);
-void overflow_handler(const int_registers *ir);
-void bound_check_fail_handler(const int_registers *ir);
-void invalid_opcode_handler(const int_registers *ir);
-void non_available_feature_handler(const int_registers *ir);
-void double_fault_handler(const int_registers *ir);
-void invalid_tss_handler(const int_registers *ir);
-void invalid_segment_handler(const int_registers *ir);
-void invalid_stack_segment_handler(const int_registers *ir);
-void general_protection_fault_handler(const int_registers *ir);
-void page_fault_handler(const int_registers *ir);
-void fpu_floating_point_exception_handler(const int_registers *ir);
-void alignment_check_handler(const int_registers *ir);
-void simd_floating_point_exception_handler(const int_registers *ir);
-void virtualization_exception_handler(const int_registers *ir);
+void divide_by_zero_handler                (const int_registers *ir);
+void debug_trap_handler                    (const int_registers *ir);
+void nmi_handler                           (const int_registers *ir);
+void breakpoint_handler                    (const int_registers *ir);
+void overflow_handler                      (const int_registers *ir);
+void bound_check_fail_handler              (const int_registers *ir);
+void invalid_opcode_handler                (const int_registers *ir);
+void non_available_feature_handler         (const int_registers *ir);
+void double_fault_handler                  (const int_registers *ir);
+void invalid_tss_handler                   (const int_registers *ir);
+void invalid_segment_handler               (const int_registers *ir);
+void invalid_stack_segment_handler         (const int_registers *ir);
+void general_protection_fault_handler      (const int_registers *ir);
+void page_fault_handler                    (const int_registers *ir);
+void fpu_floating_point_exception_handler  (const int_registers *ir);
+void alignment_check_handler               (const int_registers *ir);
+void simd_floating_point_exception_handler (const int_registers *ir);
+void virtualization_exception_handler      (const int_registers *ir);
 
 extern "C" void isr_0(int_registers ir);
 extern "C" void isr_1(int_registers ir);

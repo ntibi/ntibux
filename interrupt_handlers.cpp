@@ -119,7 +119,7 @@ void keyboard_handler(const int_registers *ir)
 void divide_by_zero_handler(const int_registers *ir)
 {
     LOG(KERN_WARNING "division by zero @eip: 0x%x\n", ir->eip);
-    // TODO: kill faulty task
+    kill_me();
 }
 
 void debug_trap_handler(const int_registers *ir)
@@ -143,25 +143,25 @@ void overflow_handler(const int_registers *ir)
 {
     (void)ir;
     LOG(KERN_WARNING "overflow\n");
-    // TODO: kill faulty task
+    kill_me();
 }
 
 void bound_check_fail_handler(const int_registers *ir)
 {
     LOG(KERN_WARNING "bound check failed @eip: 0x%x\n", ir->eip);
-    // TODO: kill faulty task
+    kill_me();
 }
 
 void invalid_opcode_handler(const int_registers *ir)
 {
     LOG(KERN_WARNING "invalid opcode @eip: 0x%x\n", ir->eip);
-    // TODO: kill faulty task
+    kill_me();
 }
 
 void non_available_feature_handler(const int_registers *ir)
 {
     LOG(KERN_WARNING "use of non supported/activated cpu feature @eip: 0x%x\n", ir->eip);
-    // TODO: kill faulty task
+    kill_me();
 }
 
 void double_fault_handler(const int_registers *ir)
@@ -188,7 +188,7 @@ void invalid_stack_segment_handler(const int_registers *ir)
 void general_protection_fault_handler(const int_registers *ir)
 {
     LOG(KERN_EMERG "general protection fault @eip: 0x%x\n", ir->eip);
-    // TODO: kill faulty task
+    kill_me();
 }
 
 void page_fault_handler(const int_registers *ir)
@@ -204,31 +204,31 @@ void page_fault_handler(const int_registers *ir)
             ir->err_code & 0x8  ? 'c' : '-', // accessed cpu bits of page (PSE or PAE enabled)
             ir->err_code & 0x10 ? 'i' : '-'  // caused by instruction (NX enabled)
             );
-    // TODO: kill faulty task
+    kill_me();
 }
 
 void fpu_floating_point_exception_handler(const int_registers *ir)
 {
     LOG(KERN_EMERG "floating point exception @eip: 0x%x\n", ir->eip);
     // TODO: check detailed error in x87 regs
-    // TODO: kill faulty task
+    kill_me();
 }
 
 void alignment_check_handler(const int_registers *ir)
 {
     LOG(KERN_EMERG "ailgnment check failed @eip: 0x%x\n", ir->eip);
-    // TODO: kill faulty task
+    kill_me();
 }
 
 void simd_floating_point_exception_handler(const int_registers *ir)
 {
     LOG(KERN_EMERG "SIMD floating point exception @eip: 0x%x\n", ir->eip);
     // TODO: check detailed error in SSE reg MXCSR
-    // TODO: kill faulty task
+    kill_me();
 }
 
 void virtualization_exception_handler(const int_registers *ir)
 {
     LOG(KERN_EMERG "virtualization exception @eip: 0x%x\n", ir->eip);
-    // TODO: kill faulty task
+    kill_me();
 }
