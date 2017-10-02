@@ -20,6 +20,7 @@ interpreter::interpreter() : commands_nbr(0)
     this->add_command("int", &interpreter::command_int);
     this->add_command("time", &interpreter::command_time);
     this->add_command("sched", &interpreter::command_sched);
+    this->add_command("cpus", &interpreter::command_cpus);
 }
 
 int interpreter::add_command(char const name[], int (interpreter::*fun)(char **args))
@@ -363,5 +364,27 @@ int interpreter::command_sched(char **args)
 
 usage:
     term.printk("usage: %s (dump [id])\n", args[0]);
+    return 1;
+}
+
+int interpreter::command_cpus(char **args)
+{
+    if (!args[1])
+    {
+        goto usage;
+    }
+    else if (!strcmp("dump", args[1]))
+    {
+        cpus.dump();
+    }
+    else
+    {
+        term.printk("unknown subcommand %s\n", args[1]);
+        goto usage;
+    }
+    return 0;
+
+usage:
+    term.printk("usage: %s (dump)\n", args[0]);
     return 1;
 }

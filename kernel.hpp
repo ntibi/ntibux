@@ -14,6 +14,7 @@
 #include "timer.hpp"
 #include "scheduler.hpp"
 #include "spinlock.hpp"
+#include "cpus.hpp"
 
 
 extern class terminal term;
@@ -23,6 +24,7 @@ extern class IDT idt;
 extern class timer timer;
 extern class scheduler sched;
 extern class debug debug;
+extern class cpus cpus;
 
 extern u32 _kbeginning;
 extern u32 _kend;
