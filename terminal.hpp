@@ -4,6 +4,7 @@
 #include "vga.hpp"
 #include "header.hpp"
 #include "misc.hpp"
+#include "scheduler.hpp"
 
 class keypress
 {

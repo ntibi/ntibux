@@ -40,6 +40,7 @@
 // # define DEBUG_KBD
 // # define DEBUG_SCHED
 // # define    DEBUG_SCHED_SWITCH
+// # define TASK_AWARE_LOG
 #endif
 
 /* === THE END === */

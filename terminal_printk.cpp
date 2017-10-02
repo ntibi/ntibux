@@ -88,6 +88,16 @@ size_t terminal::vprintk(const char *format, va_list params)
             this->printk_noup(terminal::klog[*format - '0']);
         }
         ++format;
+#ifdef TASK_AWARE_LOG
+        task *current = sched.get_current();
+        if (current)
+        {
+            if (*current->name)
+                this->printk_noup("%8g%s%g(%u) ", current->name, current->id);
+            else
+                this->printk_noup("%8g%u%g ", current->id);
+        }
+#endif
     }
     while (*format)
     {
