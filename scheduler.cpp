@@ -109,15 +109,12 @@ void scheduler::yield()
     lock.lock();
 
     if (!this->current || this->tasks.singular())
-    {
-        lock.release();
-        push_ints();
-        return ;
-    }
+        goto leave;
 
     old = LIST_HEAD(this->tasks, tasks, struct task);
     this->tasks.rotate();
     next = LIST_HEAD(this->tasks, tasks, struct task);
+
     lock.release();
 
     mem.load_page_directory(next->pd);
@@ -129,16 +126,58 @@ void scheduler::yield()
     LOG(KERN_DEBUG LOG_SCHED "%8g%s%g -> %8g%s%g\n", old->name, next->name);
 #endif
     context_switch(&old->esp, next->esp);
+    return ;
+leave:
+    lock.release();
+    push_ints();
+    return ;
+}
+
+void scheduler::kill_task(u32 id)
+{
+    task *it;
+
+    if (id == 0)
+        PANIC("killed kernel");
+
+    pop_ints();
+    lock.lock();
+
+    if (id == this->current->id)
+        this->kill_current_task_locked();
+
+    LIST_FOREACH_ENTRY(it, &this->tasks, tasks)
+    {
+        if (it->id == id)
+        {
+#ifdef DEBUG_SCHED
+            LOG(KERN_DEBUG LOG_SCHED "task %8g%s%g(%u) killed (after %U ms)\n", it->name, it->id, timer::msecs(it->elapsed));
+#endif
+            it->kill();
+            mem.kheap.free(it, sizeof(task));
+        }
+    }
+
+    lock.release();
+    push_ints();
 }
 
 void scheduler::kill_current_task()
 {
-    u32 trash;
-
     pop_ints();
     lock.lock();
+    this->kill_current_task_locked();
+}
+
+void scheduler::kill_current_task_locked()
+{
+    u32 trash;
+
+    if (!current->id) // cant kill init task
+        PANIC("killed kernel");
+
 #ifdef DEBUG_SCHED
-    LOG(KERN_DEBUG LOG_SCHED "task %8g%s%g(%u) killed\n", current->name, current->id);
+    LOG(KERN_DEBUG LOG_SCHED "task %8g%s%g(%u) killed and switched out (after %U ms)\n", current->name, current->id, timer::msecs(current->elapsed));
 #endif
     current->kill();
     mem.kheap.free(current, sizeof(task));
@@ -149,6 +188,7 @@ void scheduler::kill_current_task()
     mem.switch_page_directory();
 
     context_switch(&trash, this->current->esp);
+    return ;
 }
 
 void kill_me()
@@ -164,7 +204,7 @@ void scheduler::dump(u32 id)
     lock.lock();
     LIST_FOREACH_ENTRY(it, &this->tasks, tasks)
     {
-        if (it-> id == id)
+        if (it->id == id)
         {
             term.printk("%8g%s%g(%u)\n", it->name, it->id);
             term.printk("stack: 0x%x <- 0x%x <- 0x%x (%u%%)\n", it->stack - it->stack_size, it->esp, it->stack, (it->stack - it->esp) * 100 / it->stack_size);

@@ -54,11 +54,14 @@ public:
     task *new_task(const char *name, void (*entry)());
     void yield();
     void kill_current_task();
+    void kill_task(u32 id);
     void dump();
     void dump(u32 id);
     task *get_current() { return current; }
 
 private:
+    void kill_current_task_locked(); // call with lock already held
+
     u32 next_id;
 
     task *current;
