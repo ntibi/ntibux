@@ -41,14 +41,46 @@ void set_interrupts_handlers();
 #define PIC_TIMER 0
 #define PIC_KBD 1
 
-#define INT_GPF 13
-#define INT_PAGE_FAULT 14
+#define INT_ZERO_DIV        0
+#define INT_DBG             1
+#define INT_NMI             2
+#define INT_BREAKPOINT      3
+#define INT_OVERFLOW        4
+#define INT_BOUND           5
+#define INT_OPCODE          6
+#define INT_FEATURE         7
+#define INT_DOUBLE          8
+#define INT_TSS             10
+#define INT_SEGMENT         11
+#define INT_STACK           12
+#define INT_GPF             13
+#define INT_PAGE_FAULT      14
+#define INT_X87             16
+#define INT_ALIGNMENT       17
+#define INT_SIMD            19
+#define INT_VIRTUALIZATION  20
 
 void timer_handler(const int_registers*);
 void keyboard_handler(const int_registers*);
 
+void divide_by_zero_handler(const int_registers *ir);
+void debug_trap_handler(const int_registers *ir);
+void nmi_handler(const int_registers *ir);
+void breakpoint_handler(const int_registers *ir);
+void overflow_handler(const int_registers *ir);
+void bound_check_fail_handler(const int_registers *ir);
+void invalid_opcode_handler(const int_registers *ir);
+void non_available_feature_handler(const int_registers *ir);
+void double_fault_handler(const int_registers *ir);
+void invalid_tss_handler(const int_registers *ir);
+void invalid_segment_handler(const int_registers *ir);
+void invalid_stack_segment_handler(const int_registers *ir);
 void general_protection_fault_handler(const int_registers *ir);
 void page_fault_handler(const int_registers *ir);
+void fpu_floating_point_exception_handler(const int_registers *ir);
+void alignment_check_handler(const int_registers *ir);
+void simd_floating_point_exception_handler(const int_registers *ir);
+void virtualization_exception_handler(const int_registers *ir);
 
 extern "C" void isr_0(int_registers ir);
 extern "C" void isr_1(int_registers ir);
