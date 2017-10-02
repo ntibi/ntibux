@@ -43,11 +43,39 @@ context_switch: #                   (*old_esp, new_esp)
     1:
     ret
 
-.global eflags
-eflags:
+.global get_eflags
+get_eflags:
     pushf
     pop eax
     ret
+
+.global get_eip
+get_eip:
+    mov eax, [esp]
+    ret
+
+.global get_eax
+get_eax:
+    ret
+
+.macro get_reg r
+    .global get_\r
+    get_\r:
+    mov eax, \r
+    ret
+.endm
+
+get_reg ebx
+get_reg ecx
+get_reg edx
+get_reg edi
+get_reg esi
+get_reg ebp
+get_reg esp
+get_reg cr0
+get_reg cr2
+get_reg cr3
+get_reg cr4
 
 
 .extern interrupts_semaphore

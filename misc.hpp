@@ -53,6 +53,19 @@ inline const T& min(const T& a, const T& b) { if (a < b) return a; return b; }
 template<typename T>
 inline const T& max(const T& a, const T& b) { if (a > b) return a; return b; }
 
-extern "C" u32 eflags();
+extern "C" u32 get_eflags();
+extern "C" u32 get_eip();
+extern "C" u32 get_eax();
+extern "C" u32 get_ebx();
+extern "C" u32 get_ecx();
+extern "C" u32 get_edx();
+extern "C" u32 get_edi();
+extern "C" u32 get_esi();
+extern "C" u32 get_ebp();
+extern "C" u32 get_esp();
+extern "C" u32 get_cr0();
+extern "C" u32 get_cr2();
+extern "C" u32 get_cr3();
+extern "C" u32 get_cr4();
 
 #endif
