@@ -25,6 +25,12 @@ public:
     u32 stack; // stack top
     u32 stack_size;
 
+    union {
+    u32 status;
+    struct {
+    };
+    };
+
     u64 created;
     u64 elapsed;
 

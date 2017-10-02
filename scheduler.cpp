@@ -26,6 +26,7 @@ void task::init(u32 id, u32 entry, page_directory *pd)
     this->pd = pd;
     this->elapsed = 0;
     this->created = timer.ticks;
+    this->status = 0;
 }
 
 void task::init(const char *name, u32 id, u32 entry, page_directory *pd)
@@ -59,6 +60,7 @@ void scheduler::init()
     kernel->pd = mem.kernel_pd;
     kernel->elapsed = 0;
     kernel->created = timer.ticks;
+    kernel->status = 0;
 
     this->tasks.init_head();
     this->tasks.push(&kernel->tasks);
