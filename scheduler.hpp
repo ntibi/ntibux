@@ -69,7 +69,8 @@ public:
     task *get_current() { return current; }
 
 private:
-    void kill_current_task_locked(); // call with lock already held
+    void perform_context_switch(task *old, task *next); // | call with lock already held
+    void kill_current_task_locked();                    // |
 
     u32 next_id;
 

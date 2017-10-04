@@ -148,7 +148,12 @@ rotate:
             goto rotate;
         }
     }
+    perform_context_switch(old, next);
+    return ;
+}
 
+void scheduler::perform_context_switch(task *old, task *next)
+{
     next->last_switched = timer.ticks;
 
     mem.load_page_directory(next->pd);
@@ -161,7 +166,8 @@ rotate:
 #ifdef DEBUG_SCHED_SWITCH
     LOG(KERN_DEBUG LOG_SCHED "%8g%s%g -> %8g%s%g\n", old->name, next->name);
 #endif
-    context_switch(&old->esp, next->esp);
+    u32 trash; //  _______________/ if old is NULL, we don't save old esp (like if we are switching from a killed task)
+    context_switch(old ? &old->esp : &trash, next->esp);
     return ;
 }
 
@@ -203,8 +209,6 @@ void scheduler::kill_current_task()
 
 void scheduler::kill_current_task_locked()
 {
-    u32 trash;
-
     if (!current->id) // cant kill init task
         PANIC("killed kernel");
 
@@ -213,14 +217,9 @@ void scheduler::kill_current_task_locked()
 #endif
     current->kill();
     mem.kheap.free(current, sizeof(task));
-    current = LIST_HEAD(this->tasks, tasks, struct task);
-    lock.release();
 
-    // TODO share a subfunction with yield() to check sleeping tasks and stuff
-    mem.load_page_directory(current->pd);
-    mem.switch_page_directory();
+    perform_context_switch(NULL, LIST_HEAD(this->tasks, tasks, struct task));
 
-    context_switch(&trash, this->current->esp);
     return ;
 }
 
