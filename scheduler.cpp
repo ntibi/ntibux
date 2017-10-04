@@ -27,6 +27,7 @@ void task::init(u32 id, u32 entry, page_directory *pd)
     this->elapsed = 0;
     this->created = timer.ticks;
     this->status = 0;
+    this->sleep = 0;
 }
 
 void task::init(const char *name, u32 id, u32 entry, page_directory *pd)
@@ -35,11 +36,14 @@ void task::init(const char *name, u32 id, u32 entry, page_directory *pd)
     set_name(name);
 }
 
-void task::set_name(const char *name) { strncpy(this->name, name, TASK_NAME_LEN); }
-
 void task::kill()
 {
     this->tasks.del();
+}
+
+void task::add_sleep(u64 ticks)
+{
+    sleep += ticks;
 }
 
 void scheduler::init()
@@ -61,6 +65,7 @@ void scheduler::init()
     kernel->elapsed = 0;
     kernel->created = timer.ticks;
     kernel->status = 0;
+    kernel->sleep = 0;
 
     this->tasks.init_head();
     this->tasks.push(&kernel->tasks);
@@ -103,33 +108,60 @@ void scheduler::yield()
     task *old;
     task *next;
 
-    this->current->elapsed++;
-
     pop_ints();
     lock.lock();
 
+    this->current->elapsed++;
+
     if (!this->current || this->tasks.singular())
-        goto leave;
+    {
+        lock.release();
+        push_ints();
+        return ;
+    }
 
     old = LIST_HEAD(this->tasks, tasks, struct task);
+    old->last_switched = timer.ticks;
+rotate:
     this->tasks.rotate();
     next = LIST_HEAD(this->tasks, tasks, struct task);
 
-    lock.release();
+    // TODO: check for full rotation (like if all tasks are sleeping)
+    if (old == next)
+    {
+        lock.release();
+        push_ints();
+        return ;
+    }
+
+    if (next->sleep)
+    {
+        u64 sleeped = timer.ticks - next->last_switched;
+        if (next->sleep <= sleeped)
+        {
+            next->sleep = 0;
+        }
+        else
+        {
+            next->sleep -= sleeped;
+            next->last_switched = timer.ticks;
+            goto rotate;
+        }
+    }
+
+    next->last_switched = timer.ticks;
 
     mem.load_page_directory(next->pd);
     mem.switch_page_directory();
 
     this->current = next;
 
+    lock.release();
+
 #ifdef DEBUG_SCHED_SWITCH
     LOG(KERN_DEBUG LOG_SCHED "%8g%s%g -> %8g%s%g\n", old->name, next->name);
 #endif
     context_switch(&old->esp, next->esp);
-    return ;
-leave:
-    lock.release();
-    push_ints();
     return ;
 }
 
@@ -184,16 +216,12 @@ void scheduler::kill_current_task_locked()
     current = LIST_HEAD(this->tasks, tasks, struct task);
     lock.release();
 
+    // TODO share a subfunction with yield() to check sleeping tasks and stuff
     mem.load_page_directory(current->pd);
     mem.switch_page_directory();
 
     context_switch(&trash, this->current->esp);
     return ;
-}
-
-void kill_me()
-{
-    sched.kill_current_task();
 }
 
 void scheduler::dump(u32 id)

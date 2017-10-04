@@ -6,6 +6,7 @@
 #include "mem.hpp"
 #include "interrupt_handlers.hpp"
 #include "spinlock.hpp"
+#include "syscalls.hpp"
 
 
 struct regs
@@ -31,8 +32,13 @@ public:
     };
     };
 
+    u64 last_switched; // switched in or out, or timer checked
+
+    u64 sleep; // cpu ticks to sleep
+
     u64 created;
     u64 elapsed;
+    u64 cpu_time; // TODO
 
     struct page_directory *pd;
 
@@ -42,8 +48,11 @@ public:
 
     void init(u32 id, u32 entry, page_directory *pd);
     void init(const char *name, u32 id, u32 entry, page_directory *pd);
-    void set_name(const char *name);
+
     void kill(); // TODO: free pd
+
+    void set_name(const char *name) { strncpy(this->name, name, TASK_NAME_LEN); }
+    void add_sleep(u64 ticks);
 };
 
 class scheduler
@@ -69,8 +78,6 @@ private:
     list tasks;
     spinlock lock;
 };
-
-void kill_me();
 
 extern "C" void context_switch(u32 *old_esp, u32 new_esp) __attribute__((fastcall));
 
