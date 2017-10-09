@@ -52,12 +52,12 @@ void scheduler::init()
 
     lock.lock();
 
-    this->next_id = 0;
+    this->next_id = AVAILABLE_IDS;
 
     // manually creating initial kernel task
     kernel = (task*)mem.kheap.alloc(sizeof(task), ALLOC_ZEROED);
     kernel->set_name("kernel");
-    kernel->id = this->next_id++;
+    kernel->id = KERNEL_TASK_ID;
     kernel->stack = stack_top;
     kernel->stack_size = stack_top - stack_bottom;
     kernel->esp = 0; // will be set when switched out
@@ -73,6 +73,20 @@ void scheduler::init()
     LOG(KERN_DEBUG LOG_SCHED "new task %8g%s%g(%u)\n", kernel->name, kernel->id);
 #endif
     this->current = kernel;
+
+    // manually creating special idle task
+    idle = (task*)mem.kheap.alloc(sizeof(task), ALLOC_ZEROED);
+    idle->set_name("idle");
+    idle->id = IDLE_TASK_ID;
+    idle->stack = (u32)mem.kheap.alloc(KERNEL_STACK_SIZE, ALLOC_ALIGNED) + KERNEL_STACK_SIZE;
+    idle->stack_size = KERNEL_STACK_SIZE;
+    idle->esp = idle->stack;
+    idle->pd = mem.kernel_pd;
+    idle->elapsed = 0;
+    idle->created = timer.ticks;
+    idle->status = 0;
+    idle->sleep = 0;
+
     lock.release();
 }
 
@@ -164,7 +178,7 @@ void scheduler::perform_context_switch(task *old, task *next)
     lock.release();
 
 #ifdef DEBUG_SCHED_SWITCH
-    LOG(KERN_DEBUG LOG_SCHED "%8g%s%g -> %8g%s%g\n", old->name, next->name);
+    LOG(KERN_DEBUG LOG_SCHED "switch: %8g%s%g -> %8g%s%g\n", old->name, next->name);
 #endif
     u32 trash; //  _______________/ if old is NULL, we don't save old esp (like if we are switching from a killed task)
     context_switch(old ? &old->esp : &trash, next->esp);

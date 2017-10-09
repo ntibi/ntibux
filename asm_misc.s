@@ -107,3 +107,8 @@ pop_ints:
     sti
     1:
     ret
+
+.global busy_loop
+busy_loop:
+    hlt
+    jmp busy_loop

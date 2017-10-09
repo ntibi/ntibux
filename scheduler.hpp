@@ -68,6 +68,13 @@ public:
     void dump(u32 id);
     task *get_current() { return current; }
 
+    static const u32 KERNEL_TASK_ID = 0;
+    static const u32 IDLE_TASK_ID = 1;
+
+    static const u32 AVAILABLE_IDS = 100; // start of the available ids
+
+    // TODO: add an ids bitmap to track free ids
+
 private:
     void perform_context_switch(task *old, task *next); // | call with lock already held
     void kill_current_task_locked();                    // |
@@ -76,10 +83,14 @@ private:
 
     task *current;
 
+    task *idle;
+
     list tasks;
     spinlock lock;
 };
 
 extern "C" void context_switch(u32 *old_esp, u32 new_esp) __attribute__((fastcall));
+
+extern "C" void busy_loop();
 
 #endif
