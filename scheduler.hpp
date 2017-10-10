@@ -37,7 +37,6 @@ public:
     u64 sleep; // cpu ticks to sleep
 
     u64 created;
-    u64 elapsed;
     u64 cpu_time; // TODO
 
     struct page_directory *pd;

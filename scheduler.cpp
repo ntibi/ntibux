@@ -25,7 +25,7 @@ void task::init(u32 id, u32 entry, page_directory *pd)
      */
     this->pd = pd;
     this->created = timer.ticks;
-    this->elapsed = 0ULL;
+    this->cpu_time = 0ULL;
     this->status = 0;
     this->sleep = 0ULL;
 }
@@ -63,7 +63,7 @@ void scheduler::init()
     kernel->esp = 0; // will be set when switched out
     kernel->pd = mem.kernel_pd;
     kernel->created = timer.ticks;
-    kernel->elapsed = 0ULL;
+    kernel->cpu_time = 0ULL;
     kernel->status = 0ULL;
     kernel->sleep = 0ULL;
 
@@ -85,7 +85,7 @@ void scheduler::init()
     idle->esp = idle->stack - (sizeof(u32) * 11);
     idle->pd = mem.kernel_pd;
     idle->created = timer.ticks;
-    idle->elapsed = 0ULL;
+    idle->cpu_time = 0ULL;
     idle->status = 0ULL;
     idle->sleep = 0ULL;
 
@@ -157,7 +157,7 @@ void scheduler::yield()
     pop_ints();
     lock.lock();
 
-    this->current->elapsed += TIME_SLICE;
+    this->current->cpu_time += TIME_SLICE;
 
     if (!this->current)
         goto leave;
@@ -224,7 +224,7 @@ void scheduler::kill_task(u32 id)
         if (it->id == id)
         {
 #ifdef DEBUG_SCHED
-            LOG(KERN_DEBUG LOG_SCHED "task %8g%s%g(%u) killed (after %U ms)\n", it->name, it->id, timer::msecs(it->elapsed));
+            LOG(KERN_DEBUG LOG_SCHED "task %8g%s%g(%u) killed (after %U ms)\n", it->name, it->id, timer::msecs(timer.ticks - it->created));
 #endif
             it->kill();
             mem.kheap.free(it, sizeof(task));
@@ -248,7 +248,7 @@ void scheduler::kill_current_task_locked()
         PANIC("killed kernel");
 
 #ifdef DEBUG_SCHED
-    LOG(KERN_DEBUG LOG_SCHED "task %8g%s%g(%u) killed and switched out (after %U ms)\n", current->name, current->id, timer::msecs(current->elapsed));
+    LOG(KERN_DEBUG LOG_SCHED "task %8g%s%g(%u) killed and switched out (after %U ms)\n", current->name, current->id, timer::msecs(timer.ticks - current->created));
 #endif
     current->kill();
     mem.kheap.free(current, sizeof(task));
@@ -272,7 +272,7 @@ void scheduler::dump(u32 id)
             term.printk("stack: 0x%x <- 0x%x <- 0x%x (%u%%)\n", it->stack - it->stack_size, it->esp, it->stack, (it->stack - it->esp) * 100 / it->stack_size);
             term.printk("pd: 0x%x\n", it->pd);
             term.printk("created: %U (%U ms ago)\n", it->created, timer::msecs(timer.ticks - it->created));
-            term.printk("elapsed: %U (%U ms)\n", it->elapsed, timer::msecs(it->elapsed));
+            term.printk("cpu time: %U (%U ms)\n", it->cpu_time, timer::msecs(it->cpu_time));
             break ;
         }
     }
@@ -286,10 +286,10 @@ void scheduler::dump()
 
     pop_ints();
     lock.lock();
-    term.printk("%u: %9g%s%g (%U ms)\n", idle->id, idle->name, timer::msecs(timer.ticks - idle->created));
+    term.printk("%u: %9g%s%g (%U ms)\n", idle->id, idle->name, timer::msecs(idle->cpu_time));
     LIST_FOREACH_ENTRY(it, &this->tasks, tasks)
     {
-        term.printk("%u: %8g%s%g (%U ms)\n", it->id, it->name, timer::msecs(timer.ticks - it->created));
+        term.printk("%u: %8g%s%g (%U ms)\n", it->id, it->name, timer::msecs(it->cpu_time));
     }
     lock.release();
     push_ints();
