@@ -7,6 +7,6 @@ void kill_me()
 
 void sleep(u64 ms)
 {
-    sched.get_current()->add_sleep(ms / MS_INTERVAL);
+    sched.get_current()->add_sleep(max(ms / MS_INTERVAL, TIME_SLICE));
     sched.yield();
 }

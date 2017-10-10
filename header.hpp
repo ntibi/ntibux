@@ -21,9 +21,9 @@
 
 #define KEYBOARD_BUFFER_SIZE 256
 
-#define CLOCK_FREQ 500                 // Hz             // TODO: benchmark avg process switch time and set CLOCK_FREQ accordingly
-#define MS_INTERVAL (1000 / CLOCK_FREQ) // interval in ms
-#define TIME_SLICE 10                   // in ticks
+#define CLOCK_FREQ 500ULL                  // Hz             // TODO: benchmark avg process switch time and set CLOCK_FREQ accordingly
+#define MS_INTERVAL (1000ULL / CLOCK_FREQ) // interval in ms
+#define TIME_SLICE 10ULL                   // in ticks
 
 #define KERNEL_STACK_SIZE 16384
 
