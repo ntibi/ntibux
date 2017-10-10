@@ -286,10 +286,10 @@ void scheduler::dump()
 
     pop_ints();
     lock.lock();
-    term.printk("%u: %9g%s%g (%U ms)\n", idle->id, idle->name, timer::msecs(idle->cpu_time));
+    term.printk("%9g%s%g(%u) (%U ms)\n", idle->name, idle->id, timer::msecs(idle->cpu_time));
     LIST_FOREACH_ENTRY(it, &this->tasks, tasks)
     {
-        term.printk("%u: %8g%s%g (%U ms)\n", it->id, it->name, timer::msecs(it->cpu_time));
+        term.printk("%8g%s%g(%u) (%U ms)\n", it->name, it->id, timer::msecs(it->cpu_time));
     }
     lock.release();
     push_ints();
