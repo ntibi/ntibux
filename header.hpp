@@ -23,6 +23,7 @@
 
 #define CLOCK_FREQ 1000                 // Hz             // TODO: benchmark avg process switch time and set CLOCK_FREQ accordingly
 #define MS_INTERVAL (1000 / CLOCK_FREQ) // interval in ms
+#define TIME_SLICE 50                   // in ticks
 
 #define KERNEL_STACK_SIZE 16384
 

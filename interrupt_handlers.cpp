@@ -105,9 +105,12 @@ void timer_handler(const int_registers *ir)
     (void)ir;
     timer.tick();
 
-    interrupts_semaphore++; // if yield doesnt return (task switched) we won't have the push_ints from interrupt_handler
-    sched.yield();
-    interrupts_semaphore--; // if yield returns we get back to regular count (we will have the push_ints from interrupt_handlers)
+    if (!(timer.ticks % TIME_SLICE))
+    {
+        interrupts_semaphore++; // if yield doesnt return (task switched) we won't have the push_ints from interrupt_handler
+        sched.yield();
+        interrupts_semaphore--; // if yield returns we get back to regular count (we will have the push_ints from interrupt_handlers)
+    }
 }
 
 void keyboard_handler(const int_registers *ir)

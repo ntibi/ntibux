@@ -24,10 +24,10 @@ void task::init(u32 id, u32 entry, page_directory *pd)
      * ...
      */
     this->pd = pd;
-    this->elapsed = 0;
     this->created = timer.ticks;
+    this->elapsed = 0ULL;
     this->status = 0;
-    this->sleep = 0;
+    this->sleep = 0ULL;
 }
 
 void task::init(const char *name, u32 id, u32 entry, page_directory *pd)
@@ -62,10 +62,10 @@ void scheduler::init()
     kernel->stack_size = stack_top - stack_bottom;
     kernel->esp = 0; // will be set when switched out
     kernel->pd = mem.kernel_pd;
-    kernel->elapsed = 0;
     kernel->created = timer.ticks;
-    kernel->status = 0;
-    kernel->sleep = 0;
+    kernel->elapsed = 0ULL;
+    kernel->status = 0ULL;
+    kernel->sleep = 0ULL;
 
     this->tasks.init_head();
     this->tasks.push(&kernel->tasks);
@@ -79,13 +79,15 @@ void scheduler::init()
     idle->set_name("idle");
     idle->id = IDLE_TASK_ID;
     idle->stack = (u32)mem.kheap.alloc(KERNEL_STACK_SIZE, ALLOC_ALIGNED) + KERNEL_STACK_SIZE;
+    memset((u32*)idle->stack - sizeof(u32) * 11, 0, sizeof(u32) * 11); // we clear "saved" stack
+    *(u32*)(idle->stack - sizeof(u32) * 2) = (u32)&busy_loop; // we set its entry point
     idle->stack_size = KERNEL_STACK_SIZE;
-    idle->esp = idle->stack;
+    idle->esp = idle->stack - (sizeof(u32) * 11);
     idle->pd = mem.kernel_pd;
-    idle->elapsed = 0;
     idle->created = timer.ticks;
-    idle->status = 0;
-    idle->sleep = 0;
+    idle->elapsed = 0ULL;
+    idle->status = 0ULL;
+    idle->sleep = 0ULL;
 
     lock.release();
 }
@@ -117,6 +119,36 @@ task *scheduler::new_task(void (*entry)())
     return new_task("", entry);
 }
 
+task *scheduler::select_next()
+{
+    task *it;
+
+    this->tasks.rotate();
+    LIST_FOREACH_ENTRY(it, &this->tasks, tasks)
+    {
+        if (it->sleep)
+        {
+            u64 sleeped = timer.ticks - it->last_switched;
+            if (it->sleep <= sleeped) // wake up
+            {
+                it->sleep = 0ULL;
+                return it;
+            }
+            else                      // sleep more
+            {
+                it->sleep -= sleeped;
+                it->last_switched = timer.ticks;
+            }
+        }
+        else
+        {
+            return it;
+        }
+    }
+
+    return NULL;
+}
+
 void scheduler::yield()
 {
     task *old;
@@ -125,44 +157,33 @@ void scheduler::yield()
     pop_ints();
     lock.lock();
 
-    this->current->elapsed++;
+    this->current->elapsed += TIME_SLICE;
 
-    if (!this->current || this->tasks.singular())
-    {
-        lock.release();
-        push_ints();
-        return ;
-    }
+    if (!this->current)
+        goto leave;
 
-    old = LIST_HEAD(this->tasks, tasks, struct task);
+    old = get_current();
     old->last_switched = timer.ticks;
-rotate:
-    this->tasks.rotate();
-    next = LIST_HEAD(this->tasks, tasks, struct task);
 
-    // TODO: check for full rotation (like if all tasks are sleeping)
+    next = select_next();
+
+    if (!next) // no other tasks to switch to other than old
+    {
+        if (old == idle)                       // if we were already idling
+            goto leave;                        //     we continue
+        if (old->sleep)                        // if the task started sleeping
+            perform_context_switch(old, idle); //     we start idling
+        goto leave;                            // we stay on our task
+    }
     if (old == next)
-    {
-        lock.release();
-        push_ints();
-        return ;
-    }
+        goto leave;                            // no need to switch
 
-    if (next->sleep)
-    {
-        u64 sleeped = timer.ticks - next->last_switched;
-        if (next->sleep <= sleeped)
-        {
-            next->sleep = 0;
-        }
-        else
-        {
-            next->sleep -= sleeped;
-            next->last_switched = timer.ticks;
-            goto rotate;
-        }
-    }
     perform_context_switch(old, next);
+    return ;
+
+leave:
+    lock.release();
+    push_ints();
     return ;
 }
 
@@ -232,7 +253,7 @@ void scheduler::kill_current_task_locked()
     current->kill();
     mem.kheap.free(current, sizeof(task));
 
-    perform_context_switch(NULL, LIST_HEAD(this->tasks, tasks, struct task));
+    perform_context_switch(NULL, get_current());
 
     return ;
 }
@@ -265,6 +286,7 @@ void scheduler::dump()
 
     pop_ints();
     lock.lock();
+    term.printk("%u: %9g%s%g (%U ms)\n", idle->id, idle->name, timer::msecs(timer.ticks - idle->created));
     LIST_FOREACH_ENTRY(it, &this->tasks, tasks)
     {
         term.printk("%u: %8g%s%g (%U ms)\n", it->id, it->name, timer::msecs(timer.ticks - it->created));

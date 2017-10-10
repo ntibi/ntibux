@@ -78,6 +78,7 @@ public:
 private:
     void perform_context_switch(task *old, task *next); // | call with lock already held
     void kill_current_task_locked();                    // |
+    task *select_next();                                // |
 
     u32 next_id;
 
@@ -91,6 +92,6 @@ private:
 
 extern "C" void context_switch(u32 *old_esp, u32 new_esp) __attribute__((fastcall));
 
-extern "C" void busy_loop();
+extern "C" u32 busy_loop;
 
 #endif
