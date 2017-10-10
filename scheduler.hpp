@@ -52,6 +52,8 @@ public:
 
     void set_name(const char *name) { strncpy(this->name, name, TASK_NAME_LEN); }
     void add_sleep(u64 ticks);
+
+    void tick() { this->cpu_time++; }
 };
 
 class scheduler

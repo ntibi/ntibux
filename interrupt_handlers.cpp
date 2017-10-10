@@ -104,6 +104,7 @@ void timer_handler(const int_registers *ir)
 {
     (void)ir;
     timer.tick();
+    sched.get_current()->tick();
 
     if (!(timer.ticks % TIME_SLICE))
     {

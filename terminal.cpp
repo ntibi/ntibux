@@ -136,7 +136,7 @@ char terminal::get_scancode(void)
     u8 c;
 
 wait_key:
-    while (!this->kb.available());
+    while (!this->kb.available()) sleep(1); // the sleep will be the min time slice
     c = this->kb.get();
     switch (c)
     {

@@ -50,6 +50,7 @@ void scheduler::init()
 {
     task *kernel;
 
+    LOG(KERN_INFO LOG_SCHED "time slice is %U ms (%U ticks)\n", TIME_SLICE * MS_INTERVAL, TIME_SLICE);
     lock.lock();
 
     this->next_id = AVAILABLE_IDS;
@@ -161,7 +162,6 @@ void scheduler::yield()
         goto leave;
 
     old = get_current();
-    old->cpu_time += TIME_SLICE;
     old->last_switched = timer.ticks;
 
     next = select_next();
