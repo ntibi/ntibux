@@ -157,12 +157,11 @@ void scheduler::yield()
     pop_ints();
     lock.lock();
 
-    this->current->cpu_time += TIME_SLICE;
-
     if (!this->current)
         goto leave;
 
     old = get_current();
+    old->cpu_time += TIME_SLICE;
     old->last_switched = timer.ticks;
 
     next = select_next();
